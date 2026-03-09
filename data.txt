@@ -27,3 +27,15 @@ Title: দশ অবতার টুল
 Type: daily use tool
 Date: 9 MAR 2026
 Link: https://app-81wdpkgkhmgx.appmedo.com?s=s
+
+---
+
+ID: 106
+
+Title: CHAKRA EDITOR 
+
+Type: CODE EDIT AND GIHUB API MANAGEMENT 
+
+Date: 9 MAR 2026
+
+Link: chakra-code-editor/index.html

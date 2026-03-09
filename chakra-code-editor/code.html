@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chakra Editor - GitHub Pro Max</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    
+    <style>
+        body { background-color: #0f111a; color: #ffffff; overscroll-behavior-y: none; }
+        .app-container { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* --- Code View Brightness & Font Upgrade --- */
+        /* --- Text Selection Fix --- */
+        .CodeMirror-selected { background-color: rgba(139, 233, 253, 0.3) !important; }
+        .CodeMirror-focused .CodeMirror-selected { background-color: rgba(139, 233, 253, 0.4) !important; }
+        .CodeMirror-line::selection, .CodeMirror-line > span::selection { background-color: rgba(139, 233, 253, 0.4) !important; }
+        .CodeMirror-line::-moz-selection, .CodeMirror-line > span::-moz-selection { background-color: rgba(139, 233, 253, 0.4) !important; }
+        .CodeMirror { 
+            height: 100% !important; 
+            font-family: 'Fira Code', 'Consolas', monospace; 
+            font-size: 22px !important; 
+            line-height: 1.6; 
+            font-weight: 600; 
+            letter-spacing: 0.5px; 
+        }
+        .cm-s-dracula.CodeMirror { background-color: #0b0d14 !important; } 
+        .cm-s-dracula .cm-keyword { color: #ff79c6 !important; text-shadow: 0 0 1px rgba(255, 121, 198, 0.4); } 
+        .cm-s-dracula .cm-string { color: #f1fa8c !important; text-shadow: 0 0 1px rgba(241, 250, 140, 0.4); } 
+        .cm-s-dracula .cm-variable { color: #50fa7b !important; text-shadow: 0 0 1px rgba(80, 250, 123, 0.4); } 
+        .cm-s-dracula .cm-tag { color: #ff5555 !important; text-shadow: 0 0 1px rgba(255, 85, 85, 0.4); } 
+        .cm-s-dracula .cm-attribute { color: #8be9fd !important; text-shadow: 0 0 1px rgba(139, 233, 253, 0.4); } 
+        .cm-s-dracula .cm-property { color: #bd93f9 !important; text-shadow: 0 0 1px rgba(189, 147, 249, 0.4); } 
+        .cm-s-dracula .cm-number { color: #ffb86c !important; text-shadow: 0 0 1px rgba(255, 184, 108, 0.4); }
+        .cm-s-dracula .CodeMirror-cursor { border-left: 2px solid #ff79c6 !important; }
+        
+        .cm-search-match { background-color: rgba(255, 255, 0, 0.4); border-radius: 2px; }
+        .cm-search-active-match { background-color: #ff9800; color: #000 !important; font-weight: bold; border-radius: 2px; }
+        #editor-container { position: absolute; top: 40px; bottom: 0; left: 0; right: 0; }
+        #media-preview { position: absolute; top: 40px; bottom: 0; left: 0; right: 0; background: #0f111a; z-index: 20; display: none; align-items: center; justify-content: center; padding: 20px; flex-direction: column; }
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f111a; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    </style>
+</head>
+<body class="app-container font-sans text-gray-100">
+
+    <header class="bg-[#1a1d27] border-b border-[#2d3748] h-14 flex items-center justify-between px-3 shrink-0 z-50 shadow-md w-full relative">
+        <div class="flex items-center gap-2">
+            <button onclick="toggleSidebar()" class="text-gray-300 hover:text-white text-2xl focus:outline-none"><i class="fas fa-bars"></i></button>
+            
+            <button onclick="openAppDetails()" class="text-green-400 hover:text-green-300 font-black text-2xl tracking-wider drop-shadow-[0_0_8px_rgba(74,222,128,0.8)] ml-1 mr-2 px-1 rounded hover:bg-white/10 transition">
+                &lt;CE&gt;
+            </button>
+
+            <div class="hidden sm:flex flex-col">
+                <span class="text-green-400 font-bold text-lg leading-tight tracking-wide">
+                    <i class="fas fa-dharmachakra"></i> Chakra<span class="text-white">Editor</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 md:gap-4">
+            <button onclick="openGithubModal()" class="text-gray-300 hover:text-white text-xl" title="GitHub Integration"><i class="fab fa-github"></i></button>
+            <select id="project-selector" onchange="changeProject(this.value)" class="bg-[#2d3748] text-white text-sm rounded px-2 py-1.5 outline-none font-semibold border border-gray-600 max-w-[90px] md:max-w-[150px] truncate"></select>
+            <button onclick="newProject()" class="text-blue-400 hover:text-blue-300 text-xl" title="New Project"><i class="fas fa-plus-square"></i></button>
+            <button onclick="deleteProject()" class="text-red-400 hover:text-red-500 text-xl ml-2" title="Delete Current Project"><i class="fas fa-trash-alt"></i></button>
+            <button onclick="runPreview()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-1.5 rounded font-bold shadow-lg flex items-center gap-2">
+                <i class="fas fa-play"></i> <span>Run</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 relative overflow-hidden w-full">
+        <aside id="sidebar" class="absolute md:relative inset-y-0 left-0 w-80 bg-[#141824] border-r border-[#2d3748] z-40 transform -translate-x-full md:translate-x-0 flex flex-col shadow-2xl md:shadow-none">
+            <div class="p-3 border-b border-[#2d3748] flex justify-between items-center bg-[#1a1d27]">
+                <span class="text-sm font-bold text-gray-300 uppercase tracking-widest">Files</span>
+                <div class="flex gap-4 text-gray-300 text-lg">
+                    <input type="file" id="file-import" class="hidden" accept="*/*" multiple onchange="handleImport(event)">
+                    <button onclick="document.getElementById('file-import').click()" class="hover:text-purple-400 transition" title="Import Files"><i class="fas fa-file-import"></i></button>
+                    <button onclick="newFile()" class="hover:text-white transition" title="New File/Folder"><i class="fas fa-file-circle-plus"></i></button>
+                    <button onclick="pasteFile()" class="hover:text-green-400 transition" title="Paste File/Folder"><i class="fas fa-clipboard"></i></button>
+                    <button onclick="downloadProjectZIP()" class="hover:text-blue-400 transition" title="Download Full Project ZIP"><i class="fas fa-file-zipper"></i></button>
+                </div>
+            </div>
+            <div id="file-list" class="flex-1 overflow-y-auto py-1 custom-scrollbar"></div>
+            <button onclick="toggleSidebar()" class="md:hidden bg-[#2d3748] text-center py-3 text-base font-bold border-t border-gray-700 w-full">Close Panel</button>
+        </aside>
+
+        <main class="flex-1 w-full relative bg-[#0f111a]">
+            <div class="h-10 bg-[#1a1d27] border-b border-[#2d3748] flex items-center px-3 justify-between absolute top-0 w-full z-10">
+                <span id="current-file-name" class="text-white text-sm font-bold bg-[#2d3748] px-3 py-1 rounded shadow-inner truncate max-w-[150px] sm:max-w-none">Loading...</span>
+                <div class="flex gap-4 items-center text-lg">
+                    <button onclick="editor.undo()" class="text-gray-400 hover:text-white" title="Undo"><i class="fas fa-undo"></i></button>
+                    <button onclick="editor.redo()" class="text-gray-400 hover:text-white" title="Redo"><i class="fas fa-redo"></i></button>
+                    <button onclick="analyzeCode()" class="text-yellow-400 hover:text-yellow-300 text-sm font-bold bg-[#2d3748] px-2 py-1 rounded hidden sm:flex items-center gap-1" title="Analyze Code"><i class="fas fa-magic"></i> Explain</button>
+                    <button onclick="analyzeCode()" class="text-yellow-400 sm:hidden" title="Analyze Code"><i class="fas fa-magic"></i></button>
+                    <button onclick="toggleSearchBar()" class="text-blue-400 hover:text-blue-300" title="Search Code"><i class="fas fa-search"></i></button>
+                    
+                    <button onclick="downloadCurrentFile()" class="text-green-400 hover:text-green-300" title="Download Current File"><i class="fas fa-download"></i></button>
+                    
+                    <button onclick="clearCurrentFile()" class="text-red-400 hover:text-red-500" title="Clear Code"><i class="fas fa-eraser"></i></button>
+                </div>
+            </div>
+
+            <div id="search-bar" class="hidden absolute top-10 left-0 w-full bg-[#1e293b] border-b border-[#3b82f6] p-2 flex items-center gap-2 z-30 shadow-lg">
+                <input type="text" id="search-input" placeholder="Find in code..." class="flex-1 bg-[#0f111a] text-white px-3 py-1.5 rounded border border-gray-600 outline-none focus:border-blue-400 text-base" oninput="executeSearch()" onkeydown="if(event.key === 'Enter') nextSearch()">
+                <span id="search-count" class="text-gray-400 text-sm font-mono bg-gray-800 px-2 py-1 rounded whitespace-nowrap">0/0</span>
+                <button onclick="prevSearch()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded text-white" title="Previous"><i class="fas fa-chevron-up"></i></button>
+                <button onclick="nextSearch()" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded text-white" title="Next"><i class="fas fa-chevron-down"></i></button>
+                <button onclick="toggleSearchBar()" class="text-red-400 hover:text-red-500 px-2 text-xl ml-1" title="Close"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div id="editor-container"><textarea id="code-editor"></textarea></div>
+            <div id="media-preview"></div>
+        </main>
+    </div>
+
+    <div id="github-modal" class="hidden absolute inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#1e293b] w-full max-w-md rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="h-14 border-b border-gray-600 flex justify-between items-center px-4 shrink-0">
+                <span class="font-bold text-xl text-white"><i class="fab fa-github"></i> GitHub Manager</span>
+                <button onclick="closeGithubModal()" class="text-gray-400 hover:text-white text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto text-gray-200 text-sm flex-1 space-y-4 custom-scrollbar">
+                <div class="bg-[#0f111a] p-3 rounded border border-gray-700">
+                    <h3 class="font-bold text-gray-400 mb-2 border-b border-gray-700 pb-1">1. Settings & Create Repo</h3>
+                    <input type="password" id="gh-token" placeholder="GitHub PAT Token (ghp_...)" class="w-full bg-[#1e293b] text-white px-3 py-2 rounded border border-gray-600 outline-none focus:border-blue-400 mb-2">
+                    <input type="text" id="gh-repo" placeholder="Owner/RepoName (e.g. user/new-repo)" class="w-full bg-[#1e293b] text-white px-3 py-2 rounded border border-gray-600 outline-none focus:border-blue-400 mb-3">
+                    <div class="flex gap-2">
+                        <button onclick="saveGithubConfig()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded font-bold">Save Settings</button>
+                        <button onclick="createNewRepo()" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-2 rounded font-bold shadow-lg"><i class="fas fa-folder-plus"></i> Create Repo</button>
+                    </div>
+                </div>
+                <div class="bg-[#0f111a] p-3 rounded border border-gray-700">
+                    <h3 class="font-bold text-gray-400 mb-2 border-b border-gray-700 pb-1">2. Push / Pull Files</h3>
+                    <input type="text" id="gh-filepath" placeholder="index.html, style.css" class="w-full bg-[#1e293b] text-white px-3 py-2 rounded border border-gray-600 outline-none focus:border-blue-400 mb-2">
+                    <input type="text" id="gh-commit-msg" placeholder="Commit Message (For Push)" class="w-full bg-[#1e293b] text-white px-3 py-2 rounded border border-gray-600 outline-none focus:border-blue-400 mb-3" value="Initial commit from Chakra Editor">
+                    <div class="flex gap-2">
+                        <button onclick="pullMultipleFiles()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded font-bold text-[13px]" title="Pull Files"><i class="fas fa-download"></i> Pull</button>
+                        <button onclick="pushSelectedFiles()" class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded font-bold text-[13px]" title="Push comma-separated files"><i class="fas fa-upload"></i> Push Selected</button>
+                        <button onclick="pushAllFiles()" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-2 rounded font-bold text-[13px] shadow-lg" title="Push all files in project"><i class="fas fa-cloud-upload-alt"></i> Push All</button>
+                    </div>
+                </div>
+                <div id="gh-status" class="text-center font-bold text-yellow-400 mt-1 pb-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="preview-modal" class="hidden absolute inset-0 z-50 bg-white flex flex-col">
+        <div class="h-14 bg-[#1a1d27] text-white flex justify-between items-center px-4 shadow-md w-full shrink-0">
+            <span class="font-bold text-lg"><i class="fas fa-globe text-blue-400"></i> Live Preview</span>
+            <button onclick="closePreview()" class="bg-red-500 hover:bg-red-600 text-white px-5 py-1.5 rounded font-bold shadow-lg">Close</button>
+        </div>
+        <iframe id="preview-frame" class="flex-1 w-full h-full bg-white border-none"></iframe>
+    </div>
+    
+    <div id="analyzer-modal" class="hidden absolute inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#1e293b] w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="h-14 border-b border-gray-600 flex justify-between items-center px-4 shrink-0">
+                <span class="font-bold text-xl text-yellow-400"><i class="fas fa-book-open"></i> কোড বিশ্লেষণ</span>
+                <button onclick="closeAnalyzer()" class="text-gray-400 hover:text-white text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="analyzer-content" class="p-6 overflow-y-auto text-gray-200 text-lg leading-relaxed flex-1 space-y-4 custom-scrollbar"></div>
+        </div>
+    </div>
+
+    <div id="app-details-modal" class="hidden absolute inset-0 z-[60] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#1e293b] w-full max-w-lg rounded-2xl shadow-[0_0_30px_rgba(74,222,128,0.2)] flex flex-col overflow-hidden border border-gray-600 max-h-[95vh]">
+            <div class="h-14 bg-[#1a1d27] border-b border-gray-600 flex justify-between items-center px-4 shrink-0">
+                <span class="font-bold text-xl text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]"><i class="fas fa-info-circle"></i> App Details</span>
+                <button onclick="closeAppDetails()" class="text-gray-400 hover:text-white text-2xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 flex flex-col items-center text-center space-y-4 custom-scrollbar">
+                <img src="https://raw.githubusercontent.com/nabendudebnathbharatiya-bot/My-app-assets2/main/Ved/Vedbibhajon/IMG_2025-11-23-17-52-25-526%20(1).jpg" alt="Chakra Editor Logo" class="w-32 h-32 object-cover rounded-full border-4 border-green-500 shadow-[0_0_15px_rgba(74,222,128,0.5)]">
+                <div class="space-y-1">
+                    <h2 class="text-3xl font-black text-white tracking-wider">CHAKRA EDITOR</h2>
+                    <p class="text-green-400 font-bold text-sm tracking-widest">VER: CE001</p>
+                </div>
+                <div class="w-full bg-[#0f111a] p-4 rounded-lg border border-gray-700 text-left space-y-2 mt-2">
+                    <p><span class="text-gray-400 font-bold">CREATOR:</span> <span class="text-yellow-300 font-semibold">NABENDU DEBNATH WITH AI APPLICATION</span></p>
+                    <p><span class="text-gray-400 font-bold">DEVELOPMENT UNIT:</span> <span class="text-blue-300 font-semibold">CHAKRADHAM CREATIVE STUDIO
+<h1>যখনই ডাউনলোড করবেন তখন ডাউনলোড মেসেজ আসলে ok করুন না হলে ভবিষ্যতে ডাউনলোড স্থগিত হতে পারে, ডাউনলোড স্টপ হয়ে গেলে এই নিয়ম পালন করুন⚠️ Note: If download stops working, please click the 🔒 icon in the address bar > Site Settings > Allow 'Automatic Downloads'.</span></p>
+                </div>
+                <div class="w-full text-left mt-2">
+                    <h3 class="text-gray-300 font-bold border-b border-gray-600 pb-1 mb-2"><i class="fas fa-star text-yellow-400"></i> App Features</h3>
+                    <ul class="text-sm text-gray-400 space-y-1 list-disc pl-5 font-semibold">
+                        <li>Advanced Code Editor with Neon Bright Syntax</li>
+                        <li>Live HTML, CSS, JS Instant Preview</li>
+                        <li>Direct GitHub Integration (Pull & Push)</li>
+                        <li>Smart Tree View & Folder System</li>
+                        <li>Support for All Files (Audio, PDF, Lottie JSON, Media)</li>
+                        <li>Advanced File/Folder Copy-Paste Engine</li>
+                        <li>Single File & Full Project ZIP Download</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="p-4 bg-[#1a1d27] border-t border-gray-600 shrink-0 flex justify-center items-center flex-col">
+                <button onclick="closeAppDetails()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-10 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.4)] transition mb-2"><i class="fas fa-times-circle mr-2"></i> Close Modal</button>
+                <p class="text-[10px] text-gray-500 font-mono font-bold">POWERED BY CHAKRADHAM CREATIVE STUDIO</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/search/searchcursor.min.js"></script>
+
+    <script>
+        // --- Database & Initialization ---
+        let db = {
+            projects: [{ id: 'proj_1', name: 'Learn Coding', files: [{ id: 'f_1', name: 'index.html', type: 'code', content: '<h1>Hello Students!</h1>\n<p>Welcome to Hele Hele Coding Shekha!</p>' }] }],
+            currentProjectId: 'proj_1', currentFileId: 'f_1'
+        };
+        let ghConfig = JSON.parse(localStorage.getItem('chakra_gh_config')) || { token: '', repo: '' };
+
+        const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+            lineNumbers: true, theme: 'dracula', mode: 'htmlmixed', lineWrapping: true, autoCloseTags: true, indentUnit: 4, historyEventDelay: 500 
+        });
+
+        let saveTimeout;
+        editor.on('change', () => {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                let project = getCurrentProject();
+                let file = project.files.find(f => f.id === db.currentFileId);
+                if (file && file.type === 'code' && file.content !== editor.getValue()) {
+                    file.content = editor.getValue();
+                    saveDB();
+                    if(!document.getElementById('search-bar').classList.contains('hidden')) executeSearch();
+                }
+            }, 800);
+        });
+
+        function saveDB() { localforage.setItem('chakra_db_v11', db).catch(err => { console.error("Storage Error:", err); }); }
+        function getCurrentProject() { return db.projects.find(p => p.id === db.currentProjectId) || db.projects[0]; }
+        
+        // --- History API & Modals ---
+        window.addEventListener('popstate', function() {
+            document.getElementById('app-details-modal').classList.add('hidden');
+            document.getElementById('github-modal').classList.add('hidden');
+            document.getElementById('preview-modal').classList.add('hidden');
+            document.getElementById('analyzer-modal').classList.add('hidden');
+        });
+
+        function openAppDetails() { document.getElementById('app-details-modal').classList.remove('hidden'); history.pushState({modal: true}, ""); }
+        function closeAppDetails() { document.getElementById('app-details-modal').classList.add('hidden'); if(history.state && history.state.modal) history.back(); }
+        function openGithubModal() { document.getElementById('gh-token').value = ghConfig.token; document.getElementById('gh-repo').value = ghConfig.repo; let currentFile = getCurrentProject().files.find(f => f.id === db.currentFileId); if(currentFile) document.getElementById('gh-filepath').value = currentFile.name; document.getElementById('gh-status').innerText = ""; document.getElementById('github-modal').classList.remove('hidden'); history.pushState({modal: true}, ""); }
+        function closeGithubModal() { document.getElementById('github-modal').classList.add('hidden'); if(history.state && history.state.modal) history.back(); }
+
+        // --- Search ---
+        let searchMarks = [], activeSearchMark = null, searchMatches = [], currentSearchIndex = -1;
+        function clearSearch() { searchMarks.forEach(m=>m.clear()); if(activeSearchMark) activeSearchMark.clear(); searchMarks=[]; searchMatches=[]; currentSearchIndex=-1; document.getElementById('search-count').innerText="0/0"; }
+        function executeSearch() { clearSearch(); let term = document.getElementById('search-input').value; if(!term) return; let cursor = editor.getSearchCursor(term); while(cursor.findNext()) { searchMatches.push({from: cursor.from(), to: cursor.to()}); searchMarks.push(editor.markText(cursor.from(), cursor.to(), {className: 'cm-search-match'})); } if(searchMatches.length>0){ currentSearchIndex=0; highlightActiveMatch(); } }
+        function highlightActiveMatch() { if(searchMatches.length===0) return; if(activeSearchMark) activeSearchMark.clear(); let match = searchMatches[currentSearchIndex]; activeSearchMark = editor.markText(match.from, match.to, {className: 'cm-search-active-match'}); editor.scrollIntoView({line: match.from.line, ch: match.from.ch}, 100); document.getElementById('search-count').innerText = `${currentSearchIndex+1}/${searchMatches.length}`; }
+        function nextSearch() { if(searchMatches.length>0) { currentSearchIndex=(currentSearchIndex+1)%searchMatches.length; highlightActiveMatch(); } }
+        function prevSearch() { if(searchMatches.length>0) { currentSearchIndex=(currentSearchIndex-1+searchMatches.length)%searchMatches.length; highlightActiveMatch(); } }
+        function toggleSearchBar() { const bar = document.getElementById('search-bar'); bar.classList.toggle('hidden'); if(!bar.classList.contains('hidden')){ document.getElementById('search-input').focus(); executeSearch(); }else{ clearSearch(); document.getElementById('search-input').value=""; editor.focus(); } }
+
+        // --- Project Control ---
+        function renderProjectDropdown() { const select = document.getElementById('project-selector'); select.innerHTML=''; db.projects.forEach(p=>{ let option=document.createElement('option'); option.value=p.id; option.innerText=p.name; if(p.id===db.currentProjectId) option.selected=true; select.appendChild(option); }); }
+        function changeProject(id) { db.currentProjectId=id; saveDB(); renderFileList(); openFile(getCurrentProject().files[0]?.id); }
+        function newProject() { let n=prompt("Project name:"); if(n){ db.projects.push({id:'proj_'+Date.now(), name:n, files:[]}); saveDB(); renderProjectDropdown(); } }
+        function deleteProject() { if(db.projects.length <= 1) return alert("You cannot delete the last project!"); if(confirm("Are you sure you want to delete this entire project?")) { db.projects = db.projects.filter(p => p.id !== db.currentProjectId); db.currentProjectId = db.projects[0].id; db.currentFileId = db.projects[0].files.length > 0 ? db.projects[0].files[0].id : null; saveDB(); renderProjectDropdown(); renderFileList(); openFile(db.currentFileId); } }
+
+        // --- TREE VIEW & FOLDER SYSTEM ---
+        let openFolders = new Set(); let isTreeInitialized = false;
+
+        function buildFileTree(files) {
+            let root = { children: {} };
+            files.forEach(file => {
+                let parts = file.name.split('/'); let current = root;
+                for (let i = 0; i < parts.length; i++) {
+                    let part = parts[i]; let isLast = i === parts.length - 1; let path = parts.slice(0, i + 1).join('/');
+                    if (isLast) { current.children[part] = { type: 'file', data: file }; } 
+                    else {
+                        if (!current.children[part]) { current.children[part] = { type: 'folder', name: part, path: path, children: {} }; if (!isTreeInitialized) openFolders.add(path); }
+                        current = current.children[part];
+                    }
+                }
+            });
+            isTreeInitialized = true; return root;
+        }
+
+        function toggleFolder(path, e) { e.stopPropagation(); if (openFolders.has(path)) openFolders.delete(path); else openFolders.add(path); renderFileList(); }
+        function renameFolder(oldPath, e) { e.stopPropagation(); let newPath = prompt("Rename folder to:", oldPath); if(newPath && newPath.trim() !== "" && newPath !== oldPath) { let project = getCurrentProject(); let count = 0; project.files.forEach(f => { if(f.name.startsWith(oldPath + '/')) { f.name = newPath + f.name.substring(oldPath.length); count++; } }); if(openFolders.has(oldPath)) { openFolders.delete(oldPath); openFolders.add(newPath); } saveDB(); renderFileList(); alert(`Folder renamed! ${count} files updated.`); } }
+        function deleteFolder(path, e) { e.stopPropagation(); if(confirm(`Delete folder '${path}' and ALL files inside it?`)) { let project = getCurrentProject(); project.files = project.files.filter(f => !f.name.startsWith(path + '/')); if(!project.files.find(f => f.id === db.currentFileId)) { db.currentFileId = project.files.length > 0 ? project.files[0].id : null; if(db.currentFileId) openFile(db.currentFileId); else { document.getElementById('code-editor').value = ''; editor.setValue(''); document.getElementById('current-file-name').innerText = "Loading..."; } } saveDB(); renderFileList(); } }
+        function copyFolder(path, e) { e.stopPropagation(); let project = getCurrentProject(); let filesToCopy = project.files.filter(f => f.name.startsWith(path + '/')); if(filesToCopy.length > 0) { let copiedData = filesToCopy.map(f => ({ originalName: f.name, type: f.type, content: f.content })); localStorage.setItem('chakra_clipboard', JSON.stringify(copiedData)); alert(`Folder '${path}' copied to clipboard!`); } }
+
+        function generateTreeHTML(node, level = 0) {
+            let html = '';
+            let children = Object.values(node.children).sort((a, b) => { if (a.type === 'folder' && b.type === 'file') return -1; if (a.type === 'file' && b.type === 'folder') return 1; return (a.name || a.data.name).localeCompare(b.name || b.data.name); });
+            children.forEach(child => {
+                let pad = level * 16 + 12;
+                if (child.type === 'folder') {
+                    let isOpen = openFolders.has(child.path); let icon = isOpen ? 'fa-folder-open' : 'fa-folder'; let arrow = isOpen ? 'fa-chevron-down' : 'fa-chevron-right';
+                    html += `<div class="hover:bg-[#1e293b] transition cursor-pointer flex justify-between items-center py-2 pr-2 border-b border-[#1f2937] select-none group" style="padding-left: ${pad}px" onclick="toggleFolder('${child.path}', event)"><div class="flex items-center gap-2 flex-1 overflow-hidden"><i class="fas ${arrow} text-[10px] w-4 text-gray-500 transition-transform"></i><i class="fas ${icon} text-yellow-500 text-lg"></i><span class="text-gray-100 text-base font-bold truncate">${child.name}</span></div><div class="flex gap-4 text-gray-300 text-lg opacity-0 group-hover:opacity-100 transition-opacity"><button onclick="copyFolder('${child.path}', event)" title="Copy Folder"><i class="fas fa-copy hover:text-blue-400"></i></button><button onclick="renameFolder('${child.path}', event)" title="Rename Folder"><i class="fas fa-pen hover:text-green-400"></i></button><button onclick="deleteFolder('${child.path}', event)" title="Delete Folder"><i class="fas fa-trash hover:text-red-400"></i></button></div></div>`;
+                    if (isOpen) html += generateTreeHTML(child, level + 1);
+                } else {
+                    let file = child.data; let isActive = file.id === db.currentFileId; let activeClass = isActive ? 'bg-[#1e293b] border-l-4 border-[#00e676]' : 'border-l-4 border-transparent hover:bg-[#1e293b]'; let fileName = file.name.split('/').pop();
+                    let icon='fa-file text-gray-300'; if(fileName.endsWith('.html')) icon='fa-html5 text-[#ff6d00]'; else if(fileName.endsWith('.css')) icon='fa-css3-alt text-[#29b6f6]'; else if(fileName.endsWith('.js')) icon='fa-js text-[#ffd600]'; else if(fileName.endsWith('.json')) icon='fa-brackets-curly text-[#4caf50]'; else if(file.type==='image') icon='fa-image text-pink-400'; else if(file.type==='video') icon='fa-video text-purple-400'; else if(file.type==='audio') icon='fa-music text-yellow-400'; else if(file.type==='pdf') icon='fa-file-pdf text-red-500';
+                    html += `<div class="flex justify-between items-center py-2 pr-2 transition cursor-pointer border-b border-[#1f2937] group ${activeClass}" style="padding-left: ${isActive ? pad - 4 : pad}px" onclick="openFile('${file.id}')"><div class="flex items-center gap-2 flex-1 overflow-hidden"><i class="fab ${icon} text-lg w-5 text-center"></i><span class="truncate text-base font-semibold ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}">${fileName}</span></div><div class="flex gap-4 text-gray-300 text-lg opacity-0 group-hover:opacity-100 transition-opacity"><button onclick="copyFile('${file.id}', event)" title="Copy File"><i class="fas fa-copy hover:text-blue-400"></i></button><button onclick="renameFile('${file.id}', event)" title="Rename File"><i class="fas fa-pen hover:text-green-400"></i></button><button onclick="deleteFile('${file.id}', event)" title="Delete File"><i class="fas fa-trash hover:text-red-400"></i></button></div></div>`;
+                }
+            });
+            return html;
+        }
+        function renderFileList() { const list = document.getElementById('file-list'); list.innerHTML = ''; let files = getCurrentProject().files; if (!files || files.length === 0) return; let tree = buildFileTree(files); list.innerHTML = generateTreeHTML(tree, 0); }
+
+        function copyFile(id, e) { e.stopPropagation(); let file = getCurrentProject().files.find(f => f.id === id); if(file) { let copiedData = [{ originalName: file.name, type: file.type, content: file.content }]; localStorage.setItem('chakra_clipboard', JSON.stringify(copiedData)); alert(`'${file.name.split('/').pop()}' copied!`); } }
+        function pasteFile() { let clipData = localStorage.getItem('chakra_clipboard'); if(!clipData) return alert("Clipboard is empty!"); let filesToPaste = JSON.parse(clipData); if(!Array.isArray(filesToPaste)) { filesToPaste = [{ originalName: filesToPaste.name, type: filesToPaste.type, content: filesToPaste.content }]; } let project = getCurrentProject(); let pastedCount = 0; let isMultiFile = filesToPaste.length > 1; let basePath = ""; let targetBasePath = ""; if(isMultiFile) { let firstPathParts = filesToPaste[0].originalName.split('/'); firstPathParts.pop(); basePath = firstPathParts.join('/'); targetBasePath = basePath; let conflict = filesToPaste.some(f => project.files.some(existing => existing.name === f.originalName)); if(conflict) { let iteration = 1; targetBasePath = basePath + ' - copy'; while(project.files.some(f => f.name.startsWith(targetBasePath + '/'))) { iteration++; targetBasePath = basePath + ` - copy (${iteration})`; } } } filesToPaste.forEach(fileToPaste => { let newId = 'f_' + Date.now() + Math.floor(Math.random()*10000); let newName = fileToPaste.originalName; if (!isMultiFile && !fileToPaste.originalName.includes('/')) { while(project.files.some(f => f.name === newName)) { let parts = newName.split('.'); if(parts.length > 1) { let ext = parts.pop(); newName = parts.join('.') + ' - copy.' + ext; } else { newName += ' - copy'; } } } else if(isMultiFile && basePath !== targetBasePath) { let regex = new RegExp('^' + basePath); newName = fileToPaste.originalName.replace(regex, targetBasePath); } else if (!isMultiFile && fileToPaste.originalName.includes('/')) { while(project.files.some(f => f.name === newName)) { let parts = newName.split('.'); if(parts.length > 1) { let ext = parts.pop(); newName = parts.join('.') + ' - copy.' + ext; } else { newName += ' - copy'; } } } project.files.push({ id: newId, name: newName, type: fileToPaste.type, content: fileToPaste.content }); let folderParts = newName.split('/'); folderParts.pop(); if(folderParts.length > 0) openFolders.add(folderParts.join('/')); pastedCount++; }); saveDB(); renderFileList(); if(pastedCount > 0) openFile(project.files.slice(-1)[0].id); }
+
+        // --- File Operations ---
+        function openFile(fileId) {
+            if(!fileId) return; db.currentFileId=fileId; let file=getCurrentProject().files.find(f=>f.id===fileId); if(!file) return;
+            document.getElementById('current-file-name').innerText=file.name;
+            const editorEl=document.getElementById('editor-container'), mediaEl=document.getElementById('media-preview');
+            document.getElementById('search-bar').classList.add('hidden'); clearSearch();
+            if(file.type==='code') {
+                editorEl.style.display='block'; mediaEl.style.display='none';
+                let mode='htmlmixed'; if(file.name.endsWith('.css')) mode='css'; if(file.name.endsWith('.js') || file.name.endsWith('.json')) mode='javascript';
+                editor.setOption('mode', mode); editor.setValue(file.content); editor.clearHistory(); setTimeout(()=>editor.refresh(), 100);
+            } else {
+                editorEl.style.display='none'; mediaEl.style.display='flex';
+                if(file.type==='image') mediaEl.innerHTML=`<img src="${file.content}" class="max-w-full max-h-full rounded shadow-lg">`;
+                else if(file.type==='video') mediaEl.innerHTML=`<video src="${file.content}" controls class="max-w-full max-h-full rounded shadow-lg"></video>`;
+                else if(file.type==='audio') mediaEl.innerHTML=`<audio src="${file.content}" controls class="w-full max-w-md shadow-lg"></audio>`;
+                else if(file.type==='pdf') mediaEl.innerHTML=`<iframe src="${file.content}" class="w-full h-full border-none rounded bg-white"></iframe>`;
+                else mediaEl.innerHTML=`<div class="text-center text-gray-400"><i class="fas fa-file text-6xl mb-4"></i><p>Preview not available</p><button onclick="downloadCurrentFile()" class="mt-4 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-bold transition"><i class="fas fa-download"></i> Download to View</button></div>`;
+            }
+            saveDB(); renderFileList(); if(window.innerWidth<768) toggleSidebar();
+        }
+
+        function renameFile(id, e) { e.stopPropagation(); let file=getCurrentProject().files.find(f=>f.id===id); let n=prompt("Rename to (use '/' for folders):", file.name); if(n&&n.trim()!==""){file.name=n.trim(); saveDB(); renderFileList(); openFile(db.currentFileId);} }
+        function clearCurrentFile() { let file=getCurrentProject().files.find(f=>f.id===db.currentFileId); if(file&&file.type==='code'){if(confirm("Clear code?")) editor.setValue('');}else alert("Media cannot be cleared here."); }
+        
+        // --- MULTIPLE FILE IMPORT ---
+        async function handleImport(e) { 
+            const files = e.target.files; 
+            if(!files || files.length === 0) return; 
+            
+            let project = getCurrentProject();
+            let addedCount = 0;
+
+            for(let file of files) {
+                if(file.size > 50*1024*1024) {
+                    alert(`File ${file.name} is too large (>50MB) and will be skipped.`);
+                    continue;
+                }
+                
+                let isText = file.name.match(/\.(html|css|js|json|txt|md|csv|xml|svg)$/i);
+                let type = 'code'; 
+                if(file.type.startsWith('image/')) type = 'image'; 
+                else if(file.type.startsWith('video/')) type = 'video'; 
+                else if(file.type.startsWith('audio/')) type = 'audio'; 
+                else if(file.type === 'application/pdf') type = 'pdf'; 
+                else if(!isText) type = 'file'; 
+
+                let content = await new Promise((resolve) => {
+                    const r = new FileReader();
+                    r.onload = (ev) => resolve(ev.target.result);
+                    if(isText) r.readAsText(file); else r.readAsDataURL(file);
+                });
+
+                let newFile = {id:'f_'+Date.now()+Math.floor(Math.random()*10000), name:file.name, type:type, content:content}; 
+                project.files.push(newFile);
+                addedCount++;
+            }
+            
+            if(addedCount > 0) {
+                saveDB(); 
+                renderFileList(); 
+                openFile(project.files[project.files.length - 1].id); 
+            }
+            e.target.value = ''; 
+        }
+
+        function newFile() { let currentFile = getCurrentProject().files.find(f => f.id === db.currentFileId); let defaultPath = ""; if (currentFile && currentFile.name.includes('/')) { let parts = currentFile.name.split('/'); parts.pop(); defaultPath = parts.join('/') + '/'; } let n = prompt("File name (use '/' to make folder):", defaultPath + "new.html"); if (n && n.trim() !== "") { let newName = n.trim(); let project = getCurrentProject(); if (project.files.some(f => f.name === newName)) return alert("File already exists!"); project.files.push({id: 'f_' + Date.now(), name: newName, type: 'code', content: ''}); let folderPathParts = newName.split('/'); folderPathParts.pop(); if(folderPathParts.length > 0) openFolders.add(folderPathParts.join('/')); saveDB(); renderFileList(); openFile(project.files.slice(-1)[0].id); } }
+        function deleteFile(id, e) { e.stopPropagation(); let p = getCurrentProject(); if(p.files.length <= 1) return alert("Cannot delete last file!"); if(confirm("Delete this file?")){ p.files = p.files.filter(f => f.id !== id); db.currentFileId = p.files[0].id; saveDB(); renderFileList(); openFile(db.currentFileId); } }
+
+        // --- DOWNLOAD FIX (Anti-Spam / Toast) ---
+        function showDownloadToast(msg) {
+            let toast = document.createElement('div');
+            toast.className = "fixed top-5 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-2 rounded-full shadow-2xl z-[100] font-bold transition-all";
+            toast.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> ${msg}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        function downloadCurrentFile() {
+            let file = getCurrentProject().files.find(f => f.id === db.currentFileId); if(!file) return alert("No file selected!");
+            showDownloadToast("Downloading File...");
+            let link = document.createElement('a'); link.download = file.name.split('/').pop(); 
+            if(file.type === 'code') { let latestContent = (file.id === db.currentFileId) ? editor.getValue() : file.content; let blob = new Blob([latestContent], {type: "text/plain;charset=utf-8"}); link.href = URL.createObjectURL(blob); } 
+            else { link.href = file.content; }
+            document.body.appendChild(link); link.click(); 
+            setTimeout(() => { document.body.removeChild(link); if(file.type === 'code') URL.revokeObjectURL(link.href); }, 2000);
+        }
+
+        function downloadProjectZIP() { 
+            if (!window.JSZip) return alert("ZIP Library not loaded!"); 
+            let zip = new JSZip(); let project = getCurrentProject(); let hasFiles = false; let currentActiveContent = editor.getValue();
+            project.files.forEach(file => { hasFiles = true; if(file.type === 'code') { let fileContent = (file.id === db.currentFileId) ? currentActiveContent : file.content; zip.file(file.name, fileContent); } else { let base64Data = file.content.split(',')[1]; if(base64Data) zip.file(file.name, base64Data, {base64: true}); } }); 
+            if(!hasFiles) return alert("No files to download!");
+            showDownloadToast("Generating ZIP...");
+            zip.generateAsync({type:"blob"}).then(function(content) { 
+                let link = document.createElement('a'); link.href = URL.createObjectURL(content); link.download = (project.name || "chakra_project") + ".zip"; 
+                document.body.appendChild(link); link.click(); 
+                setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(link.href); }, 2000);
+            }).catch(err => { alert("Error generating ZIP: " + err); }); 
+        }
+
+        // --- Other Tools ---
+        function analyzeCode() { let file=getCurrentProject().files.find(f=>f.id===db.currentFileId); if(!file||file.type!=='code') return alert("Only code files can be analyzed!"); let code=editor.getValue(), htmlContent=""; if(code.trim()==="") htmlContent="<p class='text-red-400'>No code found!</p>"; else { htmlContent+=`<div class="bg-blue-900/30 border border-blue-500 p-4 rounded-lg mb-4"><h3 class="text-blue-400 font-bold mb-2">ফাইলের বিশ্লেষণ:</h3>`; if(file.name.endsWith('.html')) { htmlContent+=`<p>এটি একটি HTML ফাইল।</p></div>`; if(code.includes('<head>')) htmlContent+=`<div class="mb-3 border-l-4 border-gray-500 pl-3"><b class="text-gray-300">&lt;head&gt; সেকশন:</b> ওয়েবসাইটের মেটা ডেটা।</div>`; if(code.includes('<body>')) htmlContent+=`<div class="mb-3 border-l-4 border-green-500 pl-3"><b class="text-green-400">&lt;body&gt; সেকশন:</b> মূল অংশ।</div>`; } else if(file.name.endsWith('.css')) htmlContent+=`<p>এটি একটি CSS ফাইল (ডিজাইন)।</p></div>`; else if(file.name.endsWith('.js')) htmlContent+=`<p>এটি একটি JavaScript ফাইল (লজিক)।</p></div>`; } document.getElementById('analyzer-content').innerHTML=htmlContent; document.getElementById('analyzer-modal').classList.remove('hidden'); history.pushState({modal: true}, ""); }
+        function closeAnalyzer() { document.getElementById('analyzer-modal').classList.add('hidden'); if(history.state && history.state.modal) history.back(); }
+        function runPreview() { let p=getCurrentProject(), h=p.files.find(f=>f.name.endsWith('.html')&&f.type==='code')?.content||'', c=p.files.find(f=>f.name.endsWith('.css')&&f.type==='code')?.content||'', j=p.files.find(f=>f.name.endsWith('.js')&&f.type==='code')?.content||''; document.getElementById('preview-modal').classList.remove('hidden'); let doc=document.getElementById('preview-frame').contentDocument; doc.open(); doc.write(`${h}<style>${c}</style><script>${j}<\/script>`); doc.close(); history.pushState({modal: true}, ""); }
+        function closePreview() { document.getElementById('preview-modal').classList.add('hidden'); if(history.state && history.state.modal) history.back(); }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
+
+        // --- GitHub Repo Functions ---
+        function saveGithubConfig() { ghConfig.token = document.getElementById('gh-token').value.trim(); ghConfig.repo = document.getElementById('gh-repo').value.trim(); localStorage.setItem('chakra_gh_config', JSON.stringify(ghConfig)); showGhStatus("Settings Saved Successfully!", "text-green-400"); }
+        function showGhStatus(msg, colorClass = "text-yellow-400") { const statusEl = document.getElementById('gh-status'); statusEl.className = `text-center font-bold mt-1 pb-2 ${colorClass}`; statusEl.innerText = msg; }
+        function encodeBase64(str) { return btoa(unescape(encodeURIComponent(str))); }
+        function decodeBase64(str) { return decodeURIComponent(escape(atob(str))); }
+
+        async function createNewRepo() { let token = document.getElementById('gh-token').value.trim(); let fullRepo = document.getElementById('gh-repo').value.trim(); if(!token) return showGhStatus("Please enter your GitHub Token first!", "text-red-400"); if(!fullRepo) return showGhStatus("Please enter Owner/RepoName!", "text-red-400"); let repoName = fullRepo.includes('/') ? fullRepo.split('/')[1] : fullRepo; showGhStatus(`Creating repository '${repoName}'...`, "text-yellow-400"); try { let res = await fetch(`https://api.github.com/user/repos`, { method: 'POST', headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ name: repoName, description: "Created from Chakra Editor", private: false, auto_init: true }) }); if(!res.ok) throw new Error((await res.json()).message || "Failed to create repo"); saveGithubConfig(); showGhStatus(`✅ Repo '${repoName}' created successfully!`, "text-green-400"); } catch(error) { showGhStatus(`❌ Error: ${error.message}`, "text-red-400"); } }
+        
+        async function pullMultipleFiles() { if(!ghConfig.token || !ghConfig.repo) return showGhStatus("Please save Settings first!", "text-red-400"); let paths = document.getElementById('gh-filepath').value.trim().split(',').map(p => p.trim()).filter(p => p); if(!paths.length) return showGhStatus("File path required!", "text-red-400"); showGhStatus(`Pulling ${paths.length} file(s)...`, "text-yellow-400"); let successCount = 0, errors = [], proj = getCurrentProject(), lastFileId = null; for(let path of paths) { try { let response = await fetch(`https://api.github.com/repos/${ghConfig.repo}/contents/${path}`, { headers: { 'Authorization': `token ${ghConfig.token}`, 'Accept': 'application/vnd.github.v3+json' } }); if(!response.ok) throw new Error(`Failed to pull ${path}`); let data = await response.json(); let decodedContent = decodeBase64(data.content); let existingFile = proj.files.find(f => f.name === path); if(existingFile) { existingFile.content = decodedContent; lastFileId = existingFile.id; } else { let newFile = { id: 'f_' + Date.now() + Math.floor(Math.random()*1000), name: path, type: 'code', content: decodedContent }; proj.files.push(newFile); lastFileId = newFile.id; } successCount++; } catch(error) { errors.push(error.message); } } saveDB(); renderFileList(); if(lastFileId) openFile(lastFileId); if(successCount === paths.length) showGhStatus(`✅ Pulled ${successCount} file(s)!`, "text-green-400"); else showGhStatus(`⚠️ Pulled ${successCount}/${paths.length}. Errors: ${errors.join(', ')}`, "text-orange-400"); }
+        
+        // FIXED: Push Selected Files (Supports comma separated paths)
+        async function pushSelectedFiles() { 
+            if(!ghConfig.token || !ghConfig.repo) return showGhStatus("Please save Settings first!", "text-red-400"); 
+            
+            let paths = document.getElementById('gh-filepath').value.trim().split(',').map(p => p.trim()).filter(p => p);
+            if(paths.length === 0) return showGhStatus("File path is empty!", "text-red-400");
+            
+            let msg = document.getElementById('gh-commit-msg').value.trim() || `Update files`; 
+            
+            showGhStatus(`Pushing ${paths.length} file(s)...`, "text-yellow-400");
+            let successCount = 0;
+            let errors = [];
+
+            for(let path of paths) {
+                let fileInProject = getCurrentProject().files.find(f => f.name === path);
+                let contentToPush = "";
+
+                if (fileInProject) {
+                    if (fileInProject.id === db.currentFileId && fileInProject.type === 'code') contentToPush = editor.getValue();
+                    else contentToPush = fileInProject.content || "";
+                } else {
+                    errors.push(`${path} not found in project`);
+                    continue;
+                }
+
+                let encodedContent = "";
+                if (fileInProject.type === 'code') encodedContent = encodeBase64(contentToPush);
+                else encodedContent = contentToPush.includes(',') ? contentToPush.split(',')[1] : contentToPush;
+
+                let fileSha = null; 
+                try { 
+                    let checkRes = await fetch(`https://api.github.com/repos/${ghConfig.repo}/contents/${path}`, { headers: { 'Authorization': `token ${ghConfig.token}`, 'Accept': 'application/vnd.github.v3+json' } }); 
+                    if(checkRes.ok) { let fileData = await checkRes.json(); fileSha = fileData.sha; } 
+                } catch(e) {} 
+
+                let bodyData = { message: `${msg} (${path})`, content: encodedContent }; 
+                if(fileSha) bodyData.sha = fileSha; 
+
+                try { 
+                    let pushRes = await fetch(`https://api.github.com/repos/${ghConfig.repo}/contents/${path}`, { method: 'PUT', headers: { 'Authorization': `token ${ghConfig.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) }); 
+                    if(!pushRes.ok) throw new Error((await pushRes.json()).message || "Push failed"); 
+                    successCount++;
+                    showGhStatus(`Pushed ${successCount}/${paths.length}...`, "text-blue-400");
+                } catch(error) { 
+                    errors.push(`${path}: ${error.message}`);
+                } 
+            }
+
+            if(successCount === paths.length) {
+                showGhStatus(`✅ ${successCount} file(s) Pushed Successfully!`, "text-green-400");
+            } else if (successCount > 0) {
+                showGhStatus(`⚠️ Pushed ${successCount}/${paths.length}. Errors: ${errors.join(', ')}`, "text-orange-400");
+            } else {
+                showGhStatus(`❌ Failed. Errors: ${errors.join(', ')}`, "text-red-400");
+            }
+        }
+
+        // Push All Files functionality
+        async function pushAllFiles() {
+            if(!ghConfig.token || !ghConfig.repo) return showGhStatus("Please save Settings first!", "text-red-400");
+            let msg = document.getElementById('gh-commit-msg').value.trim() || "Push all files from Chakra Editor";
+            let filesToPush = getCurrentProject().files;
+            
+            if(filesToPush.length === 0) return showGhStatus("No files to push!", "text-red-400");
+            showGhStatus(`Pushing ${filesToPush.length} files... Please wait.`, "text-yellow-400");
+            
+            let successCount = 0;
+            for(let file of filesToPush) {
+                let path = file.name;
+                let contentToPush = file.content;
+                
+                if (file.id === db.currentFileId && file.type === 'code') contentToPush = editor.getValue();
+                
+                let encodedContent = "";
+                if (file.type === 'code') encodedContent = encodeBase64(contentToPush);
+                else encodedContent = contentToPush.includes(',') ? contentToPush.split(',')[1] : contentToPush;
+                
+                let fileSha = null;
+                try {
+                    let checkRes = await fetch(`https://api.github.com/repos/${ghConfig.repo}/contents/${path}`, { headers: { 'Authorization': `token ${ghConfig.token}`, 'Accept': 'application/vnd.github.v3+json' } });
+                    if(checkRes.ok) { let fileData = await checkRes.json(); fileSha = fileData.sha; }
+                } catch(e) {}
+                
+                let bodyData = { message: `${msg} - ${path}`, content: encodedContent };
+                if(fileSha) bodyData.sha = fileSha;
+                
+                try {
+                    let pushRes = await fetch(`https://api.github.com/repos/${ghConfig.repo}/contents/${path}`, { method: 'PUT', headers: { 'Authorization': `token ${ghConfig.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) });
+                    if(!pushRes.ok) throw new Error("Failed");
+                    successCount++;
+                    showGhStatus(`Pushed ${successCount}/${filesToPush.length}...`, "text-blue-400");
+                } catch(error) {
+                    console.error(`Error pushing ${path}`, error);
+                }
+            }
+            
+            if(successCount === filesToPush.length) showGhStatus(`✅ All ${successCount} files pushed successfully!`, "text-green-400");
+            else showGhStatus(`⚠️ Pushed ${successCount}/${filesToPush.length} files. Check console.`, "text-orange-400");
+        }
+
+        // --- App Init ---
+        async function initApp() {
+            try {
+                let storedDB = await localforage.getItem('chakra_db_v11');
+                if (storedDB) { db = storedDB; } 
+                else {
+                    let oldDB = localStorage.getItem('chakra_db_v10') || localStorage.getItem('chakra_db_v9') || localStorage.getItem('chakra_db_v8');
+                    if (oldDB) { db = JSON.parse(oldDB); await localforage.setItem('chakra_db_v11', db); }
+                }
+            } catch (error) { console.error("Failed to load DB:", error); }
+            renderProjectDropdown(); renderFileList(); if (db.currentFileId) openFile(db.currentFileId);
+        }
+
+        initApp(); 
+    </script>
+</body>
+</html>

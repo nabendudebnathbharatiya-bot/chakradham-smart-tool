@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chakra Editor - Complete Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Kalpurush', sans-serif; background-color: #0f111a; color: #e2e8f0; }
+        .tab-btn.active { background-color: #3b82f6; color: white; font-weight: bold; border-radius: 0.5rem; }
+        .code-block { background-color: #1e293b; padding: 1rem; border-radius: 0.5rem; font-family: monospace; color: #a5b4fc; overflow-x: auto; margin-top: 0.5rem; margin-bottom: 1rem; border: 1px solid #334155; }
+        .highlight { color: #facc15; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <header class="md:hidden bg-gray-800 p-4 border-b border-gray-700 flex justify-between items-center shadow-lg z-20">
+        <h1 class="text-xl font-bold text-green-400"><i class="fas fa-book-open"></i> লার্নিং গাইড</h1>
+        <button onclick="toggleMenu()" class="text-gray-300 text-2xl"><i class="fas fa-bars"></i></button>
+    </header>
+
+    <nav id="sidebar" class="bg-gray-800 w-full md:w-64 flex-shrink-0 h-full absolute md:relative z-10 transform -translate-x-full md:translate-x-0 transition-transform duration-300 border-r border-gray-700 overflow-y-auto">
+        <div class="p-5 hidden md:block border-b border-gray-700">
+            <h1 class="text-2xl font-bold text-green-400"><i class="fas fa-dharmachakra"></i> Chakra<span class="text-white">Guide</span></h1>
+            <p class="text-sm text-gray-400 mt-1">হেসে হেসে কোডিং শেখা</p>
+        </div>
+        <ul class="p-3 space-y-2 mt-4 md:mt-0">
+            <li><button onclick="openTab('intro')" class="tab-btn active w-full text-left px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition"><i class="fas fa-rocket w-6"></i> শুরু করুন</button></li>
+            <li><button onclick="openTab('editor')" class="tab-btn w-full text-left px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition"><i class="fas fa-laptop-code w-6"></i> এডিটর গাইড</button></li>
+            <li><button onclick="openTab('github')" class="tab-btn w-full text-left px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition"><i class="fab fa-github w-6"></i> গিটহাব (GitHub) গাইড</button></li>
+            <li><button onclick="openTab('html')" class="tab-btn w-full text-left px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition"><i class="fab fa-html5 w-6 text-orange-400"></i> HTML বেসিক</button></li>
+            <li><button onclick="openTab('css')" class="tab-btn w-full text-left px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition"><i class="fab fa-css3-alt w-6 text-blue-400"></i> Tailwind CSS</button></li>
+            <li><button onclick="openTab('js')" class="tab-btn w-full text-left px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition"><i class="fab fa-js w-6 text-yellow-400"></i> JavaScript বেসিক</button></li>
+        </ul>
+    </nav>
+
+    <main class="flex-1 p-6 md:p-10 overflow-y-auto bg-[#0f111a] relative">
+        
+        <section id="intro" class="tab-content max-w-3xl mx-auto animate-fade-in">
+            <h2 class="text-3xl font-bold text-white mb-4 border-b border-gray-700 pb-2">স্বাগতম কোডার্স! 🚀</h2>
+            <p class="text-lg text-gray-300 mb-4 leading-relaxed">আপনাকে <b>"হেসে হেসে কোডিং শেখা"</b> কোর্সে স্বাগতম! কোডিং কোনো ভয়ংকর ম্যাথ বা রকেট সায়েন্স নয়, এটি জাস্ট কম্পিউটারের সাথে গল্প করা। আর এই গল্পের খাতা হলো আমাদের <H1>   CHAKRA EDITOR এ DOWNLOAD নিয়ম 
+<h1>যখনই ডাউনলোড করবেন তখন ডাউনলোড মেসেজ আসলে ok করুন না হলে ভবিষ্যতে ডাউনলোড স্থগিত হতে পারে, ডাউনলোড স্টপ হয়ে গেলে এই নিয়ম পালন করুন⚠️ Note: If download stops working, please click the 🔒 icon in the address bar > Site Settings > Allow 'Automatic Downloads</H1><span class="text-green-400 font-bold">Chakra Editor</span>।</p>
+            <div class="bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded mb-6">
+                <h3 class="font-bold text-blue-400 mb-1">কীভাবে শুরু করবেন?</h3>
+                <ol class="list-decimal ml-5 text-gray-300 space-y-2">
+                    <li>বামদিকের মেনু থেকে টপিক সিলেক্ট করুন।</li>
+                    <li>কোডগুলো মনোযোগ দিয়ে পড়ুন।</li>
+                    <li>Chakra Editor-এ গিয়ে নিজে নিজে টাইপ করে <b>Run</b> বাটনে ক্লিক করুন!</li>
+                </ol>
+            </div><div class="bg-gray-800 p-4 rounded-lg mt-6 border-l-4 border-yellow-400">
+  <h3 class="font-bold text-yellow-400 mb-2"><i class="fas fa-lightbulb"></i> একটি ছোট্ট সিক্রেট!</h3>
+  <p class="text-sm text-gray-300 leading-relaxed">
+    পৃথিবীর সেরা কোডাররাও সব কোড মুখস্থ করে না! তারা শুধু জানে "কোথায় কী খুঁজতে হয়" এবং "কীভাবে জোড়া লাগাতে হয়"। তাই কোনো কোড মুখস্থ করার চেষ্টা করবেন না। শুধু বুঝুন লজিকটা কীভাবে কাজ করছে। আর আটকে গেলে গুগল বা మనদের এডিটরের <span class="text-yellow-400 font-bold">Explain</span> বাটন তো আছেই!
+  </p>
+</div><div class="bg-gray-800 p-4 rounded-lg mt-6 border-l-4 border-green-500">
+    <h3 class="font-bold text-green-400 mb-2"><i class="fas fa-shield-alt"></i> টোকেন (Token) নিয়ে সাবধানতা!</h3>
+    <p class="text-sm text-gray-300 leading-relaxed">
+        আপনার গিটহাবের <b>PAT Token</b> (ghp_...) হলো আপনার এটিএম কার্ডের পিনের মতো! এটি কখনোই পাবলিক চ্যাটে, হোয়াটসঅ্যাপ গ্রুপে বা অন্য কারও সাথে শেয়ার করবেন না। এটি কারও হাতে পড়লে সে আপনার গিটহাবের সব প্রজেক্ট ডিলিট করে দিতে পারে। এটি শুধু আপনার <b>Chakra Editor</b> এর সেটিংসে বসানোর জন্যই ব্যবহার করবেন।
+    </p>
+</div>
+
+<div class="bg-blue-900/30 p-4 rounded-lg mt-4 border border-blue-500/50">
+    <h3 class="font-bold text-blue-400 mb-2"><i class="fas fa-globe"></i> আপনার সাইট লাইভ করুন (GitHub Pages)</h3>
+    <p class="text-sm text-gray-300 leading-relaxed">
+        আপনি যখন আপনার <span class="highlight">index.html</span> ফাইলটি গিটহাবে <b>Push</b> করবেন, তখন গিটহাব ওয়েবসাইটে গিয়ে আপনার রেপোর <b>Settings > Pages</b> অপশনে যান। সেখান থেকে Source হিসেবে <b>"main"</b> বা <b>"master"</b> ব্রাঞ্চ সিলেক্ট করে সেভ করুন। ব্যস! ৫ মিনিট পর গিটহাব আপনাকে একটি লিংক দেবে, যা দিয়ে সারা পৃথিবীর মানুষ আপনার বানানো ওয়েবসাইট দেখতে পারবে!
+    </p>
+</div>
+        </section>
+
+        <section id="editor" class="tab-content hidden max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-white mb-4 border-b border-gray-700 pb-2"><i class="fas fa-laptop-code text-blue-400"></i> Chakra Editor কীভাবে চালাবেন?</h2>
+            
+            <div class="space-y-6 text-gray-300">
+                <div>
+                    <h3 class="text-xl font-bold text-yellow-400 mb-2">১. নতুন প্রজেক্ট এবং ফাইল তৈরি</h3>
+                    <p>এডিটরের উপরে থাকা <b>[+]</b> আইকনে ক্লিক করে নতুন প্রজেক্ট বানান। আর বামদিকের প্যানেল থেকে <b>File Plus</b> আইকনে ক্লিক করে <span class="highlight">index.html</span>, <span class="highlight">style.css</span> বা <span class="highlight">app.js</span> ফাইল তৈরি করতে পারবেন।</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold text-green-400 mb-2">২. লাইভ প্রিভিউ (Run)</h3>
+                    <p>আপনার লেখা কোড কেমন দেখতে হলো, তা জানতে উপরের সবুজ রঙের <b>▶ Run</b> বাটনে ক্লিক করুন। সাথে সাথে একটি লাইভ উইন্ডো খুলবে যেখানে আপনার ওয়েবসাইট দেখা যাবে!</p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold text-purple-400 mb-2">৩. জাদুর কাঠি: Explain Code 🪄</h3>
+                    <p>কোথাও আটকে গেছেন? কোড বুঝতে পারছেন না? জাস্ট উপরের হলুদ রঙের <b>Explain</b> বাটনে ক্লিক করুন। আমাদের এডিটর আপনাকে বাংলায় সহজ করে বুঝিয়ে দেবে ওই ফাইলে কী লেখা আছে!</p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold text-red-400 mb-2">৪. ভুল হলে কী করবেন? (Undo/Redo)</h3>
+                    <p>ভুল করে কোড মুছে ফেললে ভয়ের কিছু নেই! উপরের <b>বাঁকানো তীর (↩)</b> আইকনে ক্লিক করলেই মুছে যাওয়া কোড আবার ফেরত চলে আসবে।</p>
+                </div>
+            </div><div class="bg-gray-800 p-4 rounded-lg mt-6 border-l-4 border-purple-400">
+    <h3 class="font-bold text-purple-400 mb-2"><i class="fas fa-mobile-alt"></i> মোবাইল টিপস (Mobile Pro Tip)</h3>
+    <p class="text-sm text-gray-300 leading-relaxed">
+        আপনি যদি মোবাইল থেকে কোডিং করেন, তবে অনেক বড় কোড পেস্ট করার পর ঘাবড়ে যাবেন না। আমাদের এডিটরটি খুব স্মার্ট! এটি <b>Word Wrap</b> করে আপনার স্ক্রিনের মাপে কোডকে নিচে নিচে সাজিয়ে দেবে, যাতে আপনাকে ডানে-বামে স্ক্রল করতে না হয়। আর যেকোনো লেখাকে খুঁজতে ওপরের <i class="fas fa-search text-blue-400"></i> সার্চ আইকনটি ব্যবহার করতে ভুলবেন না।
+    </p>
+</div>
+        </section>
+
+        <section id="github" class="tab-content hidden max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-white mb-4 border-b border-gray-700 pb-2"><i class="fab fa-github"></i> গিটহাব (GitHub) মাস্টারগাইড</h2>
+            <p class="text-gray-300 mb-4">গিটহাব হলো কোডারদের জন্য গুগল ড্রাইভ বা গেমের সেভ পয়েন্ট! এখানে কোড রাখলে তা সারাজীবন সেভ থাকবে।</p>
+
+            <div class="bg-gray-800 p-5 rounded-lg mb-6 border border-gray-700">
+                <h3 class="text-xl font-bold text-yellow-400 mb-3">ধাপ ১: Token (PAT) তৈরি করা (খুব জরুরি!)</h3>
+                <ol class="list-decimal ml-5 text-gray-300 space-y-2">
+                    <li><a href="https://github.com/settings/tokens" target="_blank" class="text-blue-400 underline">এই লিংকে ক্লিক করে</a> গিটহাবে লগইন করুন।</li>
+                    <li><b>Generate new token (classic)</b> এ ক্লিক করুন।</li>
+                    <li>নাম দিন (যেমন: Chakra Editor)। মেয়াদ দিন (No expiration বা 90 days)।</li>
+                    <li>নিচের লিস্ট থেকে শুধু <b><span class="highlight">repo</span></b> লেখা ঘরটিতে টিক চিহ্ন (✔) দিন।</li>
+                    <li>একদম নিচে গিয়ে <b>Generate Token</b> এ ক্লিক করুন।</li>
+                    <li>যে লম্বা কোডটি (ghp_...) আসবে, সেটি কপি করে যত্ন করে রেখে দিন।</li>
+                </ol>
+            </div>
+
+            <div class="bg-gray-800 p-5 rounded-lg mb-6 border border-gray-700">
+                <h3 class="text-xl font-bold text-green-400 mb-3">ধাপ ২: Chakra Editor-এ গিটহাব কানেক্ট করা</h3>
+                <ul class="list-disc ml-5 text-gray-300 space-y-2">
+                    <li>এডিটরের উপরের গিটহাব আইকনে ক্লিক করুন।</li>
+                    <li>আপনার কপি করা <b>Token</b> টি বসান।</li>
+                    <li>আপনার গিটহাব ইউজারনেম এবং নতুন প্রজেক্টের নাম দিন (যেমন: <b>rahul/my-first-site</b>)।</li>
+                    <li>নতুন হলে <b>Create Repo</b> তে ক্লিক করুন, অথবা <b>Save Settings</b> এ ক্লিক করুন।</li>
+                </ul>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-blue-900/20 p-4 rounded border border-blue-500/30">
+                    <h4 class="font-bold text-blue-400"><i class="fas fa-upload"></i> Push (কোড আপলোড করা)</h4>
+                    <p class="text-sm text-gray-300 mt-2">আপনি এডিটরে যা লিখেছেন, তা গিটহাবে পাঠাতে <b>Commit Message</b> (যেমন: Added a button) লিখে <b>Push Current</b> বাটনে ক্লিক করুন।</p>
+                </div>
+                <div class="bg-purple-900/20 p-4 rounded border border-purple-500/30">
+                    <h4 class="font-bold text-purple-400"><i class="fas fa-download"></i> Pull (কোড ডাউনলোড করা)</h4>
+                    <p class="text-sm text-gray-300 mt-2">গিটহাব থেকে কোনো ফাইল এডিটরে আনতে ফাইলের নাম (যেমন: index.html) লিখে <b>Pull Files</b> এ ক্লিক করুন।</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="html" class="tab-content hidden max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-white mb-4 border-b border-gray-700 pb-2"><i class="fab fa-html5 text-orange-400"></i> HTML এর হাতেখড়ি</h2>
+            <p class="text-gray-300 mb-4">HTML হলো ওয়েবসাইটের কঙ্কাল। এটি দিয়ে আমরা ওয়েবসাইটকে বলি কোথায় লেখা থাকবে আর কোথায় ছবি থাকবে।</p>
+
+            <h3 class="text-xl font-bold text-gray-200 mt-6">বেসিক স্ট্রাকচার:</h3>
+            <div class="code-block">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;আমার প্রথম সাইট&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;হ্যালো কোডার!&lt;/h1&gt;
+    &lt;p&gt;আমি হেসে হেসে কোডিং শিখছি।&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+            </div>
+            
+            <h3 class="text-xl font-bold text-gray-200 mt-6">গুরুত্বপূর্ণ কিছু ট্যাগ:</h3>
+            <ul class="list-disc ml-5 text-gray-300 space-y-2">
+                <li><span class="highlight">&lt;h1&gt; থেকে &lt;h6&gt;</span>: বড় হেডিং বা টাইটেল দেওয়ার জন্য।</li>
+                <li><span class="highlight">&lt;p&gt;</span>: সাধারণ প্যারাগ্রাফ বা টেক্সট লেখার জন্য।</li>
+                <li><span class="highlight">&lt;button&gt;ক্লিক করো&lt;/button&gt;</span>: ক্লিক করার বাটন বানাতে।</li>
+                <li><span class="highlight">&lt;img src="ছবির-লিংক.jpg"&gt;</span>: ওয়েবসাইটে ছবি দেখাতে।</li>
+            </ul>
+        </section>
+
+        <section id="css" class="tab-content hidden max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-white mb-4 border-b border-gray-700 pb-2"><i class="fab fa-css3-alt text-blue-400"></i> Tailwind CSS এর ম্যাজিক</h2>
+            <p class="text-gray-300 mb-4">আগে ডিজাইন করার জন্য আলাদা CSS ফাইল লিখতে হতো। Tailwind এর মাধ্যমে আমরা সরাসরি HTML এর ভেতরেই ক্লাসের নাম লিখে ডিজাইন করতে পারি!</p>
+
+            <h3 class="text-xl font-bold text-gray-200 mt-6">কীভাবে কানেক্ট করবেন?</h3>
+            <p class="text-gray-400 text-sm mb-2">আপনার HTML ফাইলের `&lt;head&gt;` এর ভেতর এই লাইনটি বসিয়ে দিন:</p>
+            <div class="code-block">
+&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-200 mt-6">ম্যাজিক ক্লাসের উদাহরণ:</h3>
+            <div class="code-block">
+&lt;!-- একটি সুন্দর নীল রঙের বাটন --&gt;
+&lt;button class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"&gt;
+  আমাকে ক্লিক করো
+&lt;/button&gt;
+
+&lt;!-- একটি সুন্দর কার্ড --&gt;
+&lt;div class="p-6 max-w-sm bg-white rounded-xl shadow-lg flex items-center space-x-4"&gt;
+  &lt;div class="text-xl font-medium text-black"&gt;Tailwind খুব সোজা!&lt;/div&gt;
+&lt;/div&gt;
+            </div>
+
+            <ul class="list-disc ml-5 text-gray-300 space-y-2 mt-4">
+                <li><span class="highlight">bg-red-500</span>: ব্যাকগ্রাউন্ড লাল করবে।</li>
+                <li><span class="highlight">text-white</span>: লেখার রং সাদা করবে।</li>
+                <li><span class="highlight">p-4</span>: চারপাশে প্যাডিং (জায়গা) ছাড়বে।</li>
+                <li><span class="highlight">rounded-lg</span>: কোণগুলো গোল করে দেবে।</li>
+            </ul>
+        </section>
+
+        <section id="js" class="tab-content hidden max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-white mb-4 border-b border-gray-700 pb-2"><i class="fab fa-js text-yellow-400"></i> JavaScript এর খেল</h2>
+            <p class="text-gray-300 mb-4">HTML কঙ্কাল বানায়, CSS তাকে সুন্দর করে, আর JavaScript তাকে প্রাণ দেয় (যেমন: বাটনে ক্লিক করলে কিছু হওয়া)। এটি `app.js` ফাইলে বা HTML এর `&lt;script&gt;` ট্যাগে লিখতে হয়।</p>
+
+            <h3 class="text-xl font-bold text-gray-200 mt-6">১. স্ক্রিনে মেসেজ দেখানো (Alert & Console)</h3>
+            <div class="code-block">
+// ব্রাউজারে পপ-আপ মেসেজ দেখাবে
+alert("ওয়েবসাইটে স্বাগতম!");
+
+// ভেতরে ভেতরে (Console-এ) মেসেজ প্রিন্ট করবে
+console.log("জাভাস্ক্রিপ্ট কাজ করছে!");
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-200 mt-6">২. ভেরিয়েবল (বাক্স) তৈরি করা</h3>
+            <div class="code-block">
+let myName = "রাহুল";
+let age = 20;
+console.log("আমার নাম " + myName + " এবং বয়স " + age);
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-200 mt-6">৩. HTML পরিবর্তন করা (DOM Manipulation)</h3>
+            <p class="text-gray-400 text-sm mb-2">ধরি, আপনার HTML এ `<h1 id="title">হ্যালো</h1>` লেখা আছে। আপনি JS দিয়ে সেটি বদলাবেন:</p>
+            <div class="code-block">
+document.getElementById("title").innerText = "আমি কোডিং শিখছি!";
+document.getElementById("title").style.color = "red";
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        function openTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            // Show selected tab
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            // Update active button state
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('text-gray-300');
+            });
+            event.currentTarget.classList.add('active');
+            event.currentTarget.classList.remove('text-gray-300');
+
+            // Close mobile menu if open
+            if(window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+        }
+
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        }
+    </script>
+</body>
+</html>

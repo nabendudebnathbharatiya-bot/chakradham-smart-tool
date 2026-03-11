@@ -32,10 +32,34 @@ Link: https://app-81wdpkgkhmgx.appmedo.com?s=s
 
 ID: 106
 
-Title: CHAKRA EDITOR 
+Title: চক্র কোড এডিটর
 
 Type: CODE EDIT AND GIHUB API MANAGEMENT 
 
 Date: 9 MAR 2026
 
 Link: chakra-code-editor/index.html
+
+---
+
+ID: 107
+
+Title: বিজ্ঞাপন পেজ তৈরি
+
+Type: ad bridge builder tool
+
+Date: 11 MAR 2026
+
+Link: ad-builder.html
+
+---
+
+ID: 108
+
+Title: চারমুর্তি অ্যাপ 
+
+Type: VISUAL WEBSITE BUILDER
+
+Date: 11 MAR 2026
+
+Link: https://nabendudebnathbharatiya-bot.github.io/Charmurti-tool-app/

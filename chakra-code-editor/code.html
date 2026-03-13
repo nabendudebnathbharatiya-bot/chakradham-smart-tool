@@ -107,7 +107,9 @@
                     <button onclick="toggleSearchBar()" class="text-blue-400 hover:text-blue-300" title="Search Code"><i class="fas fa-search"></i></button>
                     
                     <button onclick="downloadCurrentFile()" class="text-green-400 hover:text-green-300" title="Download Current File"><i class="fas fa-download"></i></button>
-                    
+         <button onclick="copyAllCode()" class="text-blue-400 hover:text-blue-300" title="Copy All Code">
+    <i class="fas fa-copy"></i>
+</button>           
                     <button onclick="clearCurrentFile()" class="text-red-400 hover:text-red-500" title="Clear Code"><i class="fas fa-eraser"></i></button>
                 </div>
             </div>
@@ -407,7 +409,23 @@
             document.body.appendChild(link); link.click(); 
             setTimeout(() => { document.body.removeChild(link); if(file.type === 'code') URL.revokeObjectURL(link.href); }, 2000);
         }
+async function copyAllCode() {
+    let file = getCurrentProject().files.find(f => f.id === db.currentFileId);
+    
+    // চেক করা হচ্ছে ফাইলটি কোড ফাইল কি না
+    if (!file || file.type !== 'code') {
+        return alert("শুধুমাত্র কোড ফাইল কপি করা যাবে!");
+    }
 
+    let codeToCopy = editor.getValue(); // এডিটর থেকে সব কোড নেওয়া হচ্ছে
+
+    try {
+        await navigator.clipboard.writeText(codeToCopy); // ক্লিপবোর্ডে কপি করা হচ্ছে
+        showDownloadToast("Code copied to clipboard! ✅"); // আপনার তৈরি করা টোস্ট মেসেজ
+    } catch (err) {
+        alert("কপি করতে সমস্যা হয়েছে: " + err);
+    }
+}
         function downloadProjectZIP() { 
             if (!window.JSZip) return alert("ZIP Library not loaded!"); 
             let zip = new JSZip(); let project = getCurrentProject(); let hasFiles = false; let currentActiveContent = editor.getValue();

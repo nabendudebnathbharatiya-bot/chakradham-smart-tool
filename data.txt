@@ -44,7 +44,7 @@ Link: chakra-code-editor/index.html
 
 ID: 107
 
-Title: বিজ্ঞাপন পেজ তৈরি
+Title: অ্যাপের মাঝে বিজ্ঞাপন পেজ তৈরি
 
 Type: ad bridge builder tool
 
@@ -63,3 +63,15 @@ Type: VISUAL WEBSITE BUILDER
 Date: 11 MAR 2026
 
 Link: https://nabendudebnathbharatiya-bot.github.io/Charmurti-tool-app/
+
+---
+
+ID: 109
+
+Title: বিজ্ঞাপনের ছবি তৈরি করার অ্যাপ (ল্যান্ডস্কেপ,পোর্ট্রেট)
+
+Type:বিজ্ঞাপনের ছবি তৈরি করার অ্যাপ (ল্যান্ডস্কেপ,পোর্ট্রেট)
+
+Date: 25 MAR 2026
+
+Link: ad-photo-maker/index.html

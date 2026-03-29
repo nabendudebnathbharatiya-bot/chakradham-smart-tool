@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Optima Comic Studio Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@700&family=Kalam:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #0f172a; color: white; font-family: sans-serif; overflow-x: hidden; }
+        
+        .canvas-container { width: 100%; max-width: 360px; aspect-ratio: 9/16; position: relative; overflow: hidden; background: #1e293b; border: 4px solid #334155; border-radius: 12px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.8); touch-action: none; z-index: 10; }
+        .bg-layer { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; }
+        
+        .element-wrapper { position: absolute; z-index: 50; display: flex; flex-direction: column; min-width: 120px; }
+        .drag-handle { background: #3b82f6; color: white; text-align: center; font-size: 12px; padding: 6px; cursor: grab; border-top-left-radius: 10px; border-top-right-radius: 10px; user-select: none; font-weight: bold; border: 2px solid black; border-bottom: none; display: flex; justify-content: center; align-items: center; touch-action: none; }
+        .active-element .drag-handle { background: #ef4444; }
+        .active-element { filter: drop-shadow(0px 0px 8px rgba(250, 204, 21, 0.8)); z-index: 60 !important; }
+
+        .content-box { border: 2px solid black; padding: 12px; flex-grow: 1; outline: none; word-wrap: break-word; overflow: hidden; min-height: 50px; position: relative; z-index: 2; background: white; color: black; border-radius: 15px; box-shadow: 4px 4px 0px rgba(0,0,0,0.8); }
+        .narration-edit { background: #fde047; border-radius: 0; }
+
+        .tail-container { position: absolute; top: 50%; left: 50%; width: 40px; height: 80px; transform-origin: 20px 0; margin-left: -20px; z-index: 1; pointer-events: none; }
+        .tail-handle { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); width: 25px; height: 25px; background: #a855f7; border: 2px solid white; border-radius: 50%; cursor: grab; pointer-events: auto; display: none; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .active-element .tail-handle { display: block; }
+        
+        .resizer { position: absolute; bottom: -6px; right: -6px; width: 28px; height: 28px; background: #10b981; border: 2px solid black; border-radius: 50%; cursor: se-resize; z-index: 100; display: none; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 14px; touch-action: none; box-shadow: 2px 2px 0 rgba(0,0,0,0.5); }
+        .active-element .resizer { display: flex; }
+
+        .font-bangers { font-family: 'Bangers', cursive; font-size: 20px; letter-spacing: 1px; line-height: 1.2; }
+        .font-comic { font-family: 'Comic Neue', cursive; font-size: 16px; font-weight: bold; line-height: 1.2; }
+        .font-kalam { font-family: 'Kalam', cursive; font-size: 16px; line-height: 1.2; }
+        .custom-input { width: 100%; background: #0f172a; border: 1px solid #475569; color: white; padding: 8px; border-radius: 6px; font-size: 14px; margin-bottom: 8px; }
+    </style>
+</head>
+<body class="p-3 md:p-6 pb-20">
+
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        
+        <div class="flex flex-col items-center bg-gray-800 p-4 rounded-xl shadow-2xl relative order-1 lg:order-2 border border-gray-700">
+            <h2 class="text-gray-300 mb-3 text-sm font-bold text-center">👇 প্রিভিউ ক্যানভাস 👇</h2>
+            <div class="canvas-container" id="canvas">
+                <img id="canvasBg" src="" class="bg-layer hidden">
+            </div>
+        </div>
+
+        <div class="bg-gray-800 p-5 rounded-xl shadow-2xl space-y-4 order-2 lg:order-1 border border-gray-700">
+            <h1 class="text-2xl font-black text-yellow-400 border-b border-gray-600 pb-2 uppercase">কমিক স্টুডিও (প্রো)</h1>
+            
+            <div class="bg-gray-700 p-3 rounded-lg border border-gray-600">
+                <label class="block text-sm font-bold mb-2 text-pink-300">১. গল্পের ইন্ট্রো (সিনেমাটিক)</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="mTitle" placeholder="গল্পের নাম" class="custom-input col-span-2">
+                    <input type="text" id="mAuthor" placeholder="লেখকের নাম" class="custom-input">
+                    <input type="text" id="mEpisode" placeholder="পর্ব (যেমন: পর্ব-১)" class="custom-input">
+                    <input type="text" id="mProducer" placeholder="প্রযোজক" class="custom-input">
+                    <input type="text" id="mCreator" placeholder="নির্মাতা" class="custom-input">
+                </div>
+            </div>
+
+            <div class="bg-gray-700 p-3 rounded-lg border border-gray-600">
+                <label class="block text-sm font-bold mb-2 text-blue-300">২. স্লাইড এডিটর (অটো কম্প্রেশন)</label>
+                <input type="file" id="imageInput" accept="image/*" class="custom-input !bg-blue-600 mb-3">
+                
+                <select id="fontSelect" class="custom-input" onchange="changeActiveFont(this.value)">
+                    <option value="font-comic">ফন্ট: Comic Neue</option>
+                    <option value="font-bangers">ফন্ট: Bangers</option>
+                    <option value="font-kalam">ফন্ট: Kalam</option>
+                </select>
+
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <button onclick="addElement('speech')" class="bg-white text-black font-bold py-2 rounded shadow text-xs">💬 স্পিচ বাবল (ছুঁচলো)</button>
+                    <button onclick="addElement('thought')" class="bg-gray-300 text-black font-bold py-2 rounded shadow text-xs">💭 থট বাবল (গোল)</button>
+                    <button onclick="addElement('narration')" class="col-span-2 bg-yellow-400 text-black font-bold py-2 rounded shadow text-sm">🟨 ন্যারেশন বক্স</button>
+                </div>
+                <button onclick="deleteActiveElement()" class="w-full bg-red-500 text-white font-bold py-2 rounded shadow text-sm">🗑️ সিলেক্ট করা বক্স মুছুন</button>
+            </div>
+
+            <div class="bg-gray-700 p-3 rounded-lg border border-gray-600 space-y-3">
+                <button onclick="saveSlide()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-lg text-lg shadow-lg">💾 স্লাইড সেভ করুন</button>
+                <p id="slideCounter" class="text-green-400 font-bold text-sm text-center">মোট সেভ করা স্লাইড: ০</p>
+            </div>
+
+            <div class="bg-gray-700 p-3 rounded-lg border border-gray-600 space-y-3">
+                <label class="block text-sm font-bold mb-2 text-purple-300">৩. ফাইনাল প্লেয়ার আউটপুট</label>
+                
+                <!-- New Intro Style Dropdown -->
+                <select id="introAnimationSelect" class="custom-input">
+                    <option value="cinematic">ইন্ট্রো: Cinematic Zoom</option>
+                    <option value="modern">ইন্ট্রো: Modern Fade & Slide</option>
+                    <option value="retro">ইন্ট্রো: Retro Comic Panel</option>
+                </select>
+
+                <!-- New Slide Transition Dropdown -->
+                <select id="slideTransitionSelect" class="custom-input">
+                    <option value="none">ট্রানজিশন: None</option>
+                    <option value="fade">ট্রানজিশন: Fade</option>
+                    <option value="slide">ট্রানজিশন: Slide</option>
+                </select>
+                
+                <label class="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white py-2.5 px-4 rounded block text-center font-bold text-sm shadow mb-2">
+                    🎵 মিউজিক (BGM) দিন
+                    <input type="file" id="bgmInput" accept="audio/*" class="hidden">
+                </label>
+                
+                <input type="text" id="redirectUrl" placeholder="শেষ স্লাইডের পর রিডাইরেক্ট লিঙ্ক (URL)" class="custom-input !mb-3">
+                
+                <button onclick="exportPlayer()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-lg shadow text-lg">🚀 ডাউনলোড প্রফেশনাল প্লেয়ার</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let slides = []; let currentBgBase64 = ''; let bgmBase64 = ''; let activeElement = null;
+        const canvas = document.getElementById('canvas');
+
+        // ================= স্মার্ট ইমেজ কম্প্রেশন লজিক =================
+        document.getElementById('imageInput').addEventListener('change', e => {
+            const file = e.target.files[0];
+            if(!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = event => {
+                const img = new Image();
+                img.onload = () => {
+                    const tempCanvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1080; 
+                    let scaleSize = MAX_WIDTH / img.width;
+                    if(scaleSize > 1) scaleSize = 1; 
+                    
+                    tempCanvas.width = img.width * scaleSize;
+                    tempCanvas.height = img.height * scaleSize;
+                    
+                    const ctx = tempCanvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+                    
+                    currentBgBase64 = tempCanvas.toDataURL('image/jpeg', 0.6);
+                    
+                    document.getElementById('canvasBg').src = currentBgBase64;
+                    document.getElementById('canvasBg').classList.remove('hidden');
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('bgmInput').addEventListener('change', e => {
+            const file = e.target.files[0];
+            if(file) { 
+                if(file.size > 2 * 1024 * 1024) {
+                    alert('সতর্কতা: আপনার অডিও ফাইলটি ২ মেগাবাইটের বড়। ফাইনাল HTML ফাইলটি একটু ভারী হতে পারে।');
+                }
+                const reader = new FileReader(); 
+                reader.onload = event => { bgmBase64 = event.target.result; alert('মিউজিক যুক্ত হয়েছে!'); }; 
+                reader.readAsDataURL(file); 
+            }
+        });
+
+        // ================= এলিমেন্ট ও ড্র্যাগ লজিক =================
+        function addElement(type) {
+            const currentFont = document.getElementById('fontSelect').value;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'element-wrapper';
+            wrapper.style.top = '30%'; wrapper.style.left = '20%'; wrapper.style.width = '140px'; 
+            
+            const handle = document.createElement('div');
+            handle.className = 'drag-handle'; handle.innerHTML = '⬍ ড্র্যাগ';
+
+            const content = document.createElement('div');
+            content.contentEditable = "true";
+            content.className = `content-box ${currentFont} ${type === 'narration' ? 'narration-edit' : 'bubble-edit'}`;
+            content.innerHTML = "এখানে লিখুন...";
+
+            wrapper.appendChild(handle);
+            wrapper.appendChild(content);
+
+            if(type !== 'narration') {
+                const tailContainer = document.createElement('div');
+                tailContainer.className = `tail-container tail-${type}`;
+                tailContainer.dataset.type = type;
+                
+                let svgContent = type === 'speech' 
+                    ? `<polygon points="20,0 80,0 50,100" fill="white" stroke="black" stroke-width="3" vector-effect="non-scaling-stroke"/>`
+                    : `<circle cx="50" cy="30" r="15" fill="white" stroke="black" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="50" cy="65" r="10" fill="white" stroke="black" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="50" cy="95" r="5" fill="white" stroke="black" stroke-width="3" vector-effect="non-scaling-stroke"/>`;
+                
+                tailContainer.innerHTML = `<svg preserveAspectRatio="none" width="100%" height="100%" viewBox="0 0 100 100" style="overflow:visible;">${svgContent}</svg><div class="tail-handle"></div>`;
+                wrapper.appendChild(tailContainer);
+                makeTailDraggable(wrapper, tailContainer, tailContainer.querySelector('.tail-handle'));
+            }
+
+            const resizer = document.createElement('div');
+            resizer.className = 'resizer'; resizer.innerHTML = '⤡';
+            wrapper.appendChild(resizer);
+            canvas.appendChild(wrapper);
+
+            wrapper.addEventListener('mousedown', () => setActiveElement(wrapper));
+            wrapper.addEventListener('touchstart', () => setActiveElement(wrapper), {passive: true});
+
+            makeDraggable(wrapper, handle);
+            makeResizable(wrapper, resizer, content);
+            setActiveElement(wrapper);
+        }
+
+        function setActiveElement(element) {
+            if(activeElement) activeElement.classList.remove('active-element');
+            activeElement = element;
+            if(element) element.classList.add('active-element');
+        }
+
+        function deleteActiveElement() {
+            if(activeElement) { activeElement.remove(); activeElement = null; } 
+            else alert('আগে একটি বক্স সিলেক্ট করুন!');
+        }
+
+        function changeActiveFont(fontClass) {
+            if(activeElement) {
+                const content = activeElement.querySelector('.content-box');
+                content.classList.remove('font-bangers', 'font-comic', 'font-kalam');
+                content.classList.add(fontClass);
+            }
+        }
+
+        canvas.addEventListener('mousedown', e => { if(e.target === canvas || e.target.id === 'canvasBg') setActiveElement(null); });
+        canvas.addEventListener('touchstart', e => { if(e.target === canvas || e.target.id === 'canvasBg') setActiveElement(null); }, {passive:true});
+
+        function makeDraggable(wrapper, handle) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            handle.addEventListener('mousedown', dragStart); handle.addEventListener('touchstart', dragStart, {passive: false});
+            function dragStart(e) { e.preventDefault(); setActiveElement(wrapper); if(e.type === 'touchstart') { pos3 = e.touches[0].clientX; pos4 = e.touches[0].clientY; document.addEventListener('touchmove', dragAction, {passive: false}); document.addEventListener('touchend', dragEnd); } else { pos3 = e.clientX; pos4 = e.clientY; document.addEventListener('mousemove', dragAction); document.addEventListener('mouseup', dragEnd); } }
+            function dragAction(e) { e.preventDefault(); let clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX; let clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY; pos1 = pos3 - clientX; pos2 = pos4 - clientY; pos3 = clientX; pos4 = clientY; wrapper.style.top = (wrapper.offsetTop - pos2) + "px"; wrapper.style.left = (wrapper.offsetLeft - pos1) + "px"; }
+            function dragEnd() { document.removeEventListener('mouseup', dragEnd); document.removeEventListener('mousemove', dragAction); document.removeEventListener('touchend', dragEnd); document.removeEventListener('touchmove', dragAction); }
+        }
+
+        function makeResizable(wrapper, resizer, content) {
+            let startX, startY, startWidth, startHeight;
+            resizer.addEventListener('mousedown', initResize); resizer.addEventListener('touchstart', initResize, {passive: false});
+            function initResize(e) { e.preventDefault(); e.stopPropagation(); setActiveElement(wrapper); startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX; startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY; startWidth = wrapper.offsetWidth; startHeight = content.offsetHeight; if(e.type === 'touchstart') { document.addEventListener('touchmove', resizeAction, {passive: false}); document.addEventListener('touchend', stopResize); } else { document.addEventListener('mousemove', resizeAction); document.addEventListener('mouseup', stopResize); } }
+            function resizeAction(e) { e.preventDefault(); let clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX; let clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY; wrapper.style.width = (startWidth + clientX - startX) + 'px'; content.style.height = (startHeight + clientY - startY) + 'px'; }
+            function stopResize() { document.removeEventListener('mousemove', resizeAction); document.removeEventListener('mouseup', stopResize); document.removeEventListener('touchmove', resizeAction); document.removeEventListener('touchend', stopResize); }
+        }
+
+        function makeTailDraggable(wrapper, tailContainer, tailHandle) {
+            tailHandle.addEventListener('mousedown', startDrag); tailHandle.addEventListener('touchstart', startDrag, {passive: false});
+            function startDrag(e) { e.preventDefault(); e.stopPropagation(); setActiveElement(wrapper); document.addEventListener(e.type === 'touchstart' ? 'touchmove' : 'mousemove', drag); document.addEventListener(e.type === 'touchstart' ? 'touchend' : 'mouseup', endDrag); }
+            function drag(e) {
+                e.preventDefault(); let px = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; let py = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                let rect = wrapper.getBoundingClientRect(); let cx = rect.left + rect.width / 2; let cy = rect.top + rect.height / 2 + 15;
+                let dx = px - cx; let dy = py - cy;
+                let angle = Math.atan2(dy, dx) * (180 / Math.PI) - 90; let length = Math.hypot(dx, dy);
+                tailContainer.style.height = Math.max(40, length) + 'px'; tailContainer.style.transform = `rotate(${angle}deg)`;
+            }
+            function endDrag() { document.removeEventListener('mousemove', drag); document.removeEventListener('mouseup', endDrag); document.removeEventListener('touchmove', drag); document.removeEventListener('touchend', endDrag); }
+        }
+
+        // ================= স্লাইড সেভ ও এক্সপোর্ট =================
+        function saveSlide() {
+            if(!currentBgBase64) return alert('আগে স্লাইডের ছবি আপলোড করুন!');
+            setActiveElement(null);
+            
+            let elementsData = [];
+            document.querySelectorAll('.element-wrapper').forEach(wrapper => {
+                const content = wrapper.querySelector('.content-box');
+                const tail = wrapper.querySelector('.tail-container');
+                
+                let cWidth = canvas.offsetWidth; let cHeight = canvas.offsetHeight;
+                let xPercent = (wrapper.offsetLeft / cWidth) * 100;
+                let yPercent = ((wrapper.offsetTop + 30) / cHeight) * 100;
+                let wPercent = (wrapper.offsetWidth / cWidth) * 100;
+                let hPercent = (content.offsetHeight / cHeight) * 100;
+                
+                let fontClass = content.classList.contains('font-bangers') ? 'font-bangers' : content.classList.contains('font-kalam') ? 'font-kalam' : 'font-comic';
+                
+                let tailData = null;
+                if(tail) tailData = { type: tail.dataset.type, height: tail.style.height || '80px', angle: tail.style.transform || 'rotate(0deg)' };
+
+                elementsData.push({
+                    type: content.classList.contains('narration-edit') ? 'narration' : 'bubble',
+                    text: content.innerHTML, font: fontClass,
+                    x: xPercent + '%', y: yPercent + '%', w: wPercent + '%', h: hPercent + '%', tail: tailData
+                });
+            });
+
+            slides.push({ image: currentBgBase64, elements: elementsData });
+            
+            document.getElementById('canvasBg').src = ''; document.getElementById('canvasBg').classList.add('hidden');
+            currentBgBase64 = ''; document.getElementById('imageInput').value = '';
+            canvas.querySelectorAll('.element-wrapper').forEach(e => e.remove());
+            document.getElementById('slideCounter').innerText = `মোট সেভ করা স্লাইড: ${slides.length}`; 
+            alert('স্লাইডটি সেভ হয়েছে!');
+        }
+
+        function exportPlayer() {
+            if(slides.length === 0) return alert('অন্তত একটি স্লাইড সেভ করুন!');
+            
+            const redirectLink = document.getElementById('redirectUrl').value;
+            const introAnimation = document.getElementById('introAnimationSelect').value;
+            const slideTransition = document.getElementById('slideTransitionSelect').value;
+
+            const meta = {
+                title: document.getElementById('mTitle').value || 'কমিক স্টোরি',
+                author: document.getElementById('mAuthor').value || 'অজানা',
+                episode: document.getElementById('mEpisode').value || '',
+                producer: document.getElementById('mProducer').value || '',
+                creator: document.getElementById('mCreator').value || ''
+            };
+
+            const projectData = { meta, slides, bgm: bgmBase64, redirect: redirectLink, introAnim: introAnimation, transition: slideTransition };
+
+            const htmlTemplate = `<!DOCTYPE html>
+<html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>${meta.title}</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@700&family=Kalam:wght@700&display=swap" rel="stylesheet">
+<style>
+body, html { margin: 0; padding: 0; background: #000; height: 100dvh; width: 100vw; display: flex; justify-content: center; align-items: center; font-family: sans-serif; overflow: hidden; }
+.app-wrapper { width: 100%; max-width: 420px; height: 100dvh; display: flex; flex-direction: column; padding: 10px; box-sizing: border-box; background: #0f172a; }
+.player { flex: 1; position: relative; overflow: hidden; background: #111; border: 4px solid #fff; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.8); min-height: 0; transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out; }
+.player.slide-out { transform: translateX(-100%); opacity: 0; } .player.slide-in { transform: translateX(0); opacity: 1; }
+.player.fade-out { opacity: 0; } .player.fade-in { opacity: 1; }
+.bg-layer { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+
+.controls-bar { height: 70px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
+.nav-btn { background: #fff; color: #000; padding: 12px 20px; border-radius: 30px; border: 3px solid #000; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 3px 3px 0px #000; transition: transform 0.1s; }
+.nav-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0px #000; } .nav-btn:disabled { opacity: 0.5; pointer-events: none; }
+
+.element-wrapper { position: absolute; z-index: 10; display: flex; flex-direction: column; pointer-events: none; }
+.content-box { border: 2px solid black; padding: 12px; word-wrap: break-word; overflow: hidden; display: flex; align-items: center; justify-content: center; text-align: center; background: white; border-radius: 15px; position: relative; z-index: 2; box-shadow: 4px 4px 0px rgba(0,0,0,0.8); color: black; }
+.narration-edit { background: #fde047; border-radius: 0; }
+.font-bangers { font-family: 'Bangers', cursive; font-size: 20px; line-height: 1.2;} .font-comic { font-family: 'Comic Neue', cursive; font-size: 16px; font-weight: bold; line-height: 1.2;} .font-kalam { font-family: 'Kalam', cursive; font-size: 16px; line-height: 1.2;}
+
+#introScreen { position: absolute; inset: 0; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; color: white; border: 4px solid #334155; }
+.intro-text { opacity: 0; }
+.start-btn { opacity: 0; background: #10b981; color: white; border: 3px solid #000; padding: 12px 35px; font-size: 22px; font-weight: bold; cursor: pointer; margin-top: 35px; box-shadow: 4px 4px 0 #000; animation: popIn 0.5s forwards; animation-delay: 3s; border-radius: 12px; }
+
+/* --- Cinematic Intro --- */
+.intro-cinematic { background: linear-gradient(135deg, #1e293b, #020617); }
+.intro-cinematic .anim-title { font-family: 'Bangers', cursive; letter-spacing: 2px; font-size: 50px; background: -webkit-linear-gradient(#fde047, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(3px 3px 0px #000); animation: scaleUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; animation-delay: 0.5s; line-height: 1; margin-bottom: 25px; }
+.intro-cinematic .anim-ep { font-family: 'Bangers', cursive; font-size: 22px; background: #e11d48; color: #fff; padding: 5px 20px; border: 2px solid white; transform: rotate(-5deg); animation: slideIn 0.5s forwards; animation-delay: 1.2s; margin-bottom: 20px; box-shadow: 4px 4px 0 #000;}
+.intro-cinematic .anim-author { font-family: 'Bangers', cursive; font-size: 20px; animation: fadeIn 0.5s forwards; animation-delay: 2s; color: #cbd5e1; }
+.intro-cinematic .anim-prod { font-family: 'Bangers', cursive; font-size: 16px; animation: fadeIn 0.5s forwards; animation-delay: 2.5s; color: #94a3b8; margin-top: 15px; border-top: 1px solid #475569; padding-top: 10px; width: 80%; }
+
+/* --- Modern Intro --- */
+.intro-modern { background: #111827; }
+.intro-modern .anim-title { font-family: 'Kalam', cursive; font-size: 45px; color: #facc15; animation: fadeInDown 0.8s forwards; animation-delay: 0.5s; margin-bottom: 15px; }
+.intro-modern .anim-ep { font-family: 'Comic Neue', cursive; font-size: 20px; color: #9ca3af; animation: fadeInUp 0.8s forwards; animation-delay: 0.8s; margin-bottom: 30px; }
+.intro-modern .anim-author { font-size: 18px; animation: fadeInLeft 0.8s forwards; animation-delay: 1.5s; color: #e5e7eb; }
+.intro-modern .anim-prod { font-size: 16px; animation: fadeInRight 0.8s forwards; animation-delay: 1.8s; color: #d1d5db; margin-top: 10px; }
+
+/* --- Retro Intro --- */
+.intro-retro { background-image: radial-gradient(circle, #ef4444, #dc2626, #b91c1c); font-family: 'Bangers', cursive; }
+.retro-panel { background: #fef3c7; color: black; border: 4px solid black; padding: 15px; margin: 10px; box-shadow: 5px 5px 0px #000; opacity: 0; }
+.intro-retro .anim-title { font-size: 40px; transform: scale(0.8); animation: retro-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; animation-delay: 0.5s; }
+.intro-retro .anim-ep { font-size: 24px; background: #2563eb; color: white; transform: rotate(-3deg); animation: retro-pop 0.5s forwards; animation-delay: 1.2s; }
+.intro-retro .anim-author, .intro-retro .anim-prod { font-size: 18px; animation: retro-pop 0.5s forwards; animation-delay: 1.8s; }
+
+/* --- Animation Keyframes --- */
+@keyframes scaleUp { 0% { opacity: 0; transform: scale(0.3); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes slideIn { 0% { opacity: 0; transform: translateX(-50px) rotate(-5deg); } 100% { opacity: 1; transform: translateX(0) rotate(-5deg); } }
+@keyframes fadeIn { to { opacity: 1; } }
+@keyframes popIn { 0% { opacity: 0; transform: scale(0.5); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes fadeInUp { 0% { opacity:0; transform: translateY(30px); } 100% { opacity:1; transform: translateY(0); } }
+@keyframes fadeInDown { 0% { opacity:0; transform: translateY(-30px); } 100% { opacity:1; transform: translateY(0); } }
+@keyframes fadeInLeft { 0% { opacity:0; transform: translateX(-30px); } 100% { opacity:1; transform: translateX(0); } }
+@keyframes fadeInRight { 0% { opacity:0; transform: translateX(30px); } 100% { opacity:1; transform: translateX(0); } }
+@keyframes retro-pop { 0% { opacity: 0; transform: scale(0.5) rotate(-10deg); } 100% { opacity: 1; transform: scale(1) rotate(var(--rotation, -3deg)); } }
+
+.typewriter-text { overflow: hidden; display: inline-block; white-space: pre-wrap; animation: typing 1.5s steps(40, end); }
+@keyframes typing { from { max-height: 0; opacity: 0; } to { max-height: 500px; opacity: 1; } }
+</style></head><body>
+
+<div class="app-wrapper">
+    <div class="player" id="player">
+        
+        <div id="introScreen">
+            <!-- Intro content will be injected by script -->
+        </div>
+
+        <img id="slideImg" class="bg-layer" src="">
+        <div id="elementsContainer"></div>
+    </div>
+    
+    <div class="controls-bar" id="controls" style="visibility: hidden;">
+        <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">⬅ আগের পর্ব</button>
+        <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">পরের পর্ব ➔</button>
+    </div>
+</div>
+
+<audio id="bgm" loop></audio>
+
+<script>
+    const projectData = ${JSON.stringify(projectData)};
+    let currentSlide = 0;
+    const audio = document.getElementById('bgm');
+    const player = document.getElementById('player');
+    const introScreen = document.getElementById('introScreen');
+
+    // Setup Intro based on projectData
+    const meta = projectData.meta;
+    let introHTML = '';
+    if (projectData.introAnim === 'modern') {
+        introScreen.className = 'intro-modern';
+        introHTML = \`
+            <div class="intro-text anim-title">\${meta.title}</div>
+            <div class="intro-text anim-ep">\${meta.episode}</div>
+            <div class="intro-text anim-author">লেখক: \${meta.author}</div>
+            <div class="intro-text anim-prod">প্রযোজনা: \${meta.producer} | নির্মাতা: \${meta.creator}</div>
+            <button onclick="startComic()" class="start-btn">শুরু করুন</button>
+        \`;
+    } else if (projectData.introAnim === 'retro') {
+        introScreen.className = 'intro-retro';
+        introHTML = \`
+            <div class="retro-panel intro-text anim-title">\${meta.title}</div>
+            <div class="retro-panel intro-text anim-ep" style="--rotation: -3deg;">\${meta.episode}</div>
+            <div class="retro-panel intro-text anim-author" style="--rotation: 2deg;">লেখক: \${meta.author}</div>
+             <button onclick="startComic()" class="start-btn">পড়া শুরু হোক!</button>
+        \`;
+    } else { // Default to cinematic
+        introScreen.className = 'intro-cinematic';
+        introHTML = \`
+            <div class="intro-text anim-title">\${meta.title}</div>
+            <div class="intro-text anim-ep">\${meta.episode}</div>
+            <div class="intro-text anim-author">লেখক: \${meta.author}</div>
+            <div class="intro-text anim-prod">প্রযোজনা: \${meta.producer}<br>নির্মাতা: \${meta.creator}</div>
+            <button onclick="startComic()" class="start-btn">গল্প পড়ুন ➔</button>
+        \`;
+    }
+    introScreen.innerHTML = introHTML;
+    
+    function startComic() {
+        introScreen.style.display = 'none';
+        document.getElementById('controls').style.visibility = 'visible';
+        if(projectData.bgm) { audio.src = projectData.bgm; audio.play().catch(e=>console.log("Audio autoplay failed")); setInterval(() => { audio.volume = Math.max(0.1, Math.min(1, 0.4 + 0.2 * Math.sin(Date.now()/4000))); }, 500); }
+        renderSlide(true);
+    }
+
+    function renderSlide(isFirstRender = false) {
+        if (currentSlide < 0 || currentSlide >= projectData.slides.length) return;
+
+        const slide = projectData.slides[currentSlide]; 
+        document.getElementById('slideImg').src = slide.image;
+        
+        document.getElementById('prevBtn').disabled = currentSlide === 0;
+        document.getElementById('nextBtn').innerText = currentSlide === projectData.slides.length - 1 ? 'শেষ' : 'পরের পর্ব ➔';
+
+        const container = document.getElementById('elementsContainer'); container.innerHTML = '';
+        slide.elements.forEach((el, index) => {
+            setTimeout(() => {
+                const wrap = document.createElement('div');
+                wrap.className = 'element-wrapper';
+                wrap.style.left = el.x; wrap.style.top = el.y; wrap.style.width = el.w;
+                
+                let tailHTML = '';
+                if(el.tail) {
+                    let svgContent = el.tail.type === 'speech' 
+                        ? '<polygon points="20,0 80,0 50,100" fill="white" stroke="black" stroke-width="3" vector-effect="non-scaling-stroke"/>'
+                        : '<circle cx="50" cy="30" r="15" fill="white" stroke="black" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="50" cy="65" r="10" fill="white" stroke="black" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="50" cy="95" r="5" fill="white" stroke="black" stroke-width="3" vector-effect="non-scaling-stroke"/>';
+                    
+                    tailHTML = \`<div style="position: absolute; top: 50%; left: 50%; width: 40px; height: \${el.tail.height}; transform-origin: 20px 0; margin-left: -20px; transform: \${el.tail.angle}; z-index: 1;">
+                        <svg preserveAspectRatio="none" width="100%" height="100%" viewBox="0 0 100 100" style="overflow:visible;">\${svgContent}</svg>
+                    </div>\`;
+                }
+
+                wrap.innerHTML = tailHTML + \`<div class="content-box \${el.font} \${el.type === 'narration' ? 'narration-edit' : ''}" style="height: \${el.h};"><div class="typewriter-text">\${el.text}</div></div>\`;
+                container.appendChild(wrap);
+            }, index * 400); 
+        });
+
+        // Handle entrance transition
+        if (!isFirstRender) {
+             if(projectData.transition === 'slide') { player.classList.add('slide-in'); }
+             else if(projectData.transition === 'fade') { player.classList.add('fade-in'); }
+        }
+    }
+
+    function changeSlide(dir) {
+        if(dir === 1 && currentSlide === projectData.slides.length - 1) { 
+            if(projectData.redirect && projectData.redirect.trim() !== '') {
+                window.location.href = projectData.redirect; 
+            } else {
+                alert('গল্প শেষ! পড়ার জন্য ধন্যবাদ।'); 
+            }
+            return; 
+        }
+
+        const newSlide = currentSlide + dir;
+        if (newSlide < 0 || newSlide >= projectData.slides.length) return;
+        
+        const transitionDuration = projectData.transition !== 'none' ? 400 : 0;
+
+        // Handle exit transition
+        if(projectData.transition === 'slide') { player.classList.add('slide-out'); }
+        else if(projectData.transition === 'fade') { player.classList.add('fade-out'); }
+        
+        setTimeout(() => {
+            currentSlide = newSlide;
+            
+            // Remove previous transition classes
+            player.classList.remove('slide-in', 'slide-out', 'fade-in', 'fade-out');
+            
+            renderSlide(false);
+        }, transitionDuration);
+    }
+<\/script></body></html>`;
+
+            const blob = new Blob([htmlTemplate], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'OptimaComicPlayer_Pro.html';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

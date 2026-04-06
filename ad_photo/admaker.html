@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ad Studio Pro V4</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Galada&family=Tiro+Bangla&family=Baloo+Da+2:wght@400;700&family=Mina:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --dark: #0f172a;
+            --accent: #fbbf24;
+        }
+
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            margin: 0;
+            background-color: #222;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: white;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+            height: 50px;
+        }
+
+        /* --- WORKSPACE --- */
+        .workspace {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            background-image: radial-gradient(#444 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        #mainCanvas {
+            background: white;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            transition: width 0.3s, height 0.3s;
+            background-size: cover;
+            background-position: center;
+            overflow: hidden; /* Elements won't spill out */
+        }
+
+        .mode-portrait { width: 360px; height: 640px; }
+        .mode-landscape { width: 600px; height: 340px; }
+        .mode-square { width: 500px; height: 500px; }
+
+        /* Draggable Items */
+        .drag-item {
+            position: absolute;
+            cursor: move;
+            text-align: center;
+            padding: 5px;
+            z-index: 10;
+            border: 2px solid transparent;
+        }
+        
+        .drag-item.selected {
+            border: 2px dashed #ffff00;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Image Shapes */
+        .shape-round { border-radius: 50%; }
+        .shape-square { border-radius: 0; }
+        .shape-rounded { border-radius: 15px; }
+        /* Star Shape using Clip-path */
+        .shape-star { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+
+        /* --- BOTTOM CONTROLS --- */
+        .bottom-bar {
+            position: absolute; bottom: 20px; left: 0; right: 0;
+            display: flex; justify-content: center; gap: 15px;
+            pointer-events: none; /* Click through to canvas */
+            z-index: 25;
+        }
+
+        .bar-btn {
+            pointer-events: auto;
+            background: rgba(255,255,255,0.9);
+            border: none; padding: 12px 20px;
+            border-radius: 50px; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex; align-items: center; gap: 8px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .bar-btn:active { transform: scale(0.95); }
+        .btn-edit { background: var(--primary); color: white; display: none; } /* Hidden by default */
+
+        /* --- EDIT PANELS --- */
+        .panel {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; border-radius: 20px 20px 0 0;
+            padding: 20px; box-sizing: border-box;
+            transform: translateY(110%); transition: 0.3s;
+            z-index: 30; max-height: 60vh; overflow-y: auto;
+            box-shadow: 0 -5px 30px rgba(0,0,0,0.3);
+        }
+        .panel.active { transform: translateY(0); }
+
+        .control-row { margin-bottom: 15px; }
+        label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .color-picker { height: 40px; padding: 2px; }
+
+        /* Shape Buttons */
+        .shape-selector { display: flex; gap: 10px; margin-top: 5px; }
+        .shape-btn { width: 40px; height: 40px; background: #ddd; border: none; cursor: pointer; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="font-weight:bold; color:var(--dark);">🎨 Ad Studio Pro</div>
+        <button onclick="downloadImage()" style="background:var(--primary); color:white; border:none; padding:8px 15px; border-radius:5px; font-weight:bold;">
+            <i class="fa-solid fa-download"></i> Save
+        </button>
+    </header>
+
+    <div class="workspace" id="workspace">
+        <div id="mainCanvas" class="mode-portrait" style="background-image: linear-gradient(135deg, #1e3a8a, #0f172a);">
+            
+            <div id="bgOverlay" style="position:absolute; inset:0; background:rgba(0,0,0,0.3); pointer-events:none; z-index:0;"></div>
+
+            <div id="elLogo" class="drag-item image-obj" style="top:10%; left:38%;">
+                <img src="chakra.jpg" class="shape-round" style="width:80px; height:80px; object-fit:cover; border:3px solid #fbbf24;">
+            </div>
+
+            <div id="elTitle" class="drag-item text-obj" style="top:25%; left:5%; width:90%; font-size:32px; color:white; font-weight:bold;">
+                কসমিক হিলিং
+            </div>
+
+            <div id="elBody" class="drag-item text-obj" style="top:40%; left:5%; width:90%; font-size:16px; color:white;">
+                বিনা ঔষধে ও পার্শ্বপ্রতিক্রিয়াহীন চিকিৎসায় আজই সুস্থ হয়ে উঠুন।
+            </div>
+
+            <div id="elFooter" class="drag-item text-obj" style="top:80%; left:20%; background:white; color:black; padding:8px 20px; border-radius:50px; font-weight:bold; width:auto;">
+                📞 +91 6296378080
+            </div>
+
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <button class="bar-btn" onclick="openPanel('panelGlobal')"><i class="fa-solid fa-gear"></i> Settings</button>
+        <button class="bar-btn" onclick="addNewImage()"><i class="fa-solid fa-image"></i> Add Img</button>
+        <button id="btnEdit" class="bar-btn btn-edit" onclick="openEditMenu()"><i class="fa-solid fa-pen"></i> Edit Selected</button>
+    </div>
+
+
+    <div id="panelText" class="panel">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <span>✏️ এডিট টেক্সট</span>
+            <i class="fa-solid fa-check" onclick="closePanels()" style="color:green; font-size:1.5rem;"></i>
+        </div>
+        
+        <div class="control-row">
+            <label>লেখা</label>
+            <textarea id="txtVal" rows="2" oninput="updateText()"></textarea>
+        </div>
+
+        <div class="control-row" style="display:flex; gap:10px;">
+            <div style="flex:1;">
+                <label>ফন্ট সাইজ</label>
+                <input type="range" id="txtSize" min="10" max="100" oninput="updateStyle('fontSize', this.value+'px')">
+            </div>
+            <div style="flex:1;">
+                <label>ফন্ট স্টাইল</label>
+                <select id="txtFont" onchange="updateStyle('fontFamily', this.value)">
+                    <option value="'Hind Siliguri', sans-serif">Hind Siliguri</option>
+                    <option value="'Baloo Da 2', cursive">Baloo Da 2 (মোটা)</option>
+                    <option value="'Mina', sans-serif">Mina (ক্লিন)</option>
+                    <option value="'Galada', cursive">Galada (স্টাইলিশ)</option>
+                    <option value="'Tiro Bangla', serif">Tiro Bangla (ফরমাল)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-row" style="display:flex; gap:10px;">
+            <div style="flex:1;">
+                <label>টেক্সট কালার</label>
+                <input type="color" id="txtColor" class="color-picker" oninput="updateStyle('color', this.value)">
+            </div>
+            <div style="flex:1;">
+                <label>ব্যাকগ্রাউন্ড কালার</label>
+                <input type="color" id="txtBg" class="color-picker" value="#ffffff" oninput="updateStyle('backgroundColor', this.value)">
+                <label style="font-size:0.7rem; margin-top:2px;"><input type="checkbox" onchange="toggleTxBg(this)"> অন/অফ</label>
+            </div>
+        </div>
+    </div>
+
+    <div id="panelImage" class="panel">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <span>🖼️ এডিট ছবি</span>
+            <i class="fa-solid fa-check" onclick="closePanels()" style="color:green; font-size:1.5rem;"></i>
+        </div>
+
+        <div class="control-row">
+            <label>ছবি পরিবর্তন</label>
+            <input type="file" accept="image/*" onchange="updateImgSrc(this)">
+        </div>
+
+        <div class="control-row">
+            <label>সাইজ</label>
+            <input type="range" id="imgSize" min="30" max="300" oninput="updateImgSize(this.value)">
+        </div>
+
+        <div class="control-row">
+            <label>আকৃতি (Shape)</label>
+            <div class="shape-selector">
+                <button class="shape-btn shape-square" onclick="setImgShape('shape-square')"></button>
+                <button class="shape-btn shape-rounded" onclick="setImgShape('shape-rounded')" style="border-radius:10px;"></button>
+                <button class="shape-btn shape-round" onclick="setImgShape('shape-round')" style="border-radius:50%;"></button>
+                <button class="shape-btn shape-star" onclick="setImgShape('shape-star')" style="background:gold; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);"></button>
+            </div>
+        </div>
+        
+        <div class="control-row">
+            <button onclick="removeActiveElement()" style="width:100%; background:red; color:white; border:none; padding:10px; border-radius:5px;">🗑️ ডিলিট করুন</button>
+        </div>
+    </div>
+
+    <div id="panelGlobal" class="panel">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <span>⚙️ সেটিংস</span>
+            <i class="fa-solid fa-check" onclick="closePanels()"></i>
+        </div>
+        
+        <div class="control-row">
+            <label>ক্যানভাস সাইজ</label>
+            <div style="display:flex; gap:5px;">
+                <button onclick="setMode('portrait')" style="flex:1; padding:10px;">Portrait</button>
+                <button onclick="setMode('landscape')" style="flex:1; padding:10px;">Landscape</button>
+                <button onclick="setMode('square')" style="flex:1; padding:10px;">Square</button>
+            </div>
+        </div>
+
+        <div class="control-row">
+            <label>মেইন ব্যাকগ্রাউন্ড</label>
+            <input type="file" accept="image/*" onchange="setMainBg(this)">
+        </div>
+        
+        <div class="control-row">
+            <label>ডার্কনেস (Overlay)</label>
+            <input type="range" min="0" max="0.8" step="0.1" oninput="document.getElementById('bgOverlay').style.backgroundColor = `rgba(0,0,0,${this.value})`">
+        </div>
+    </div>
+
+
+    <script>
+        // --- 1. CORE VARIABLES ---
+        let activeEl = null;
+
+        // --- 2. AUTO FIT CANVAS ---
+        function fitCanvas() {
+            const ws = document.getElementById('workspace');
+            const cv = document.getElementById('mainCanvas');
+            const scale = Math.min((ws.clientWidth - 20) / cv.offsetWidth, (ws.clientHeight - 80) / cv.offsetHeight);
+            cv.style.transform = `scale(${scale})`;
+        }
+        window.onload = fitCanvas; window.onresize = fitCanvas;
+
+        // --- 3. SELECTION LOGIC ---
+        // Click selection only handles visuals. Menu opens via button.
+        const items = document.querySelectorAll('.drag-item');
+        items.forEach(initDragItem);
+
+        function initDragItem(item) {
+            // Touch & Mouse events for selection
+            item.addEventListener('mousedown', (e) => selectItem(item));
+            item.addEventListener('touchstart', (e) => selectItem(item));
+            
+            // Drag Logic
+            item.addEventListener('touchstart', dragStart, {passive: false});
+            item.addEventListener('mousedown', dragStart);
+        }
+
+        function selectItem(item) {
+            activeEl = item;
+            // Visual Highlight
+            document.querySelectorAll('.drag-item').forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            // Show Edit Button
+            document.getElementById('btnEdit').style.display = 'flex';
+        }
+
+        function openEditMenu() {
+            if(!activeEl) return;
+            closePanels();
+            
+            if(activeEl.classList.contains('text-obj')) {
+                // Load Text Values
+                document.getElementById('panelText').classList.add('active');
+                document.getElementById('txtVal').value = activeEl.innerText;
+                document.getElementById('txtSize').value = parseInt(window.getComputedStyle(activeEl).fontSize);
+                // (Color picker sync is complex, skipped for simplicity)
+            } else {
+                // Load Image Menu
+                document.getElementById('panelImage').classList.add('active');
+                const img = activeEl.querySelector('img');
+                document.getElementById('imgSize').value = img.offsetWidth;
+            }
+        }
+
+        // --- 4. EDIT FUNCTIONS ---
+        
+        // Text
+        function updateText() { if(activeEl) activeEl.innerText = document.getElementById('txtVal').value; }
+        function updateStyle(prop, val) { if(activeEl) activeEl.style[prop] = val; }
+        
+        function toggleTxBg(chk) {
+            if(activeEl) {
+                activeEl.style.backgroundColor = chk.checked ? document.getElementById('txtBg').value : 'transparent';
+                activeEl.style.padding = chk.checked ? '5px 10px' : '0';
+                activeEl.style.borderRadius = chk.checked ? '5px' : '0';
+            }
+        }
+
+        // Image
+        function updateImgSize(val) {
+            if(activeEl) {
+                const img = activeEl.querySelector('img');
+                img.style.width = val + 'px';
+                img.style.height = val + 'px'; // Maintain aspect ratio usually, but for shapes square is better
+            }
+        }
+        
+        function updateImgSrc(input) {
+            if(input.files[0] && activeEl) {
+                const reader = new FileReader();
+                reader.onload = (e) => activeEl.querySelector('img').src = e.target.result;
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function setImgShape(cls) {
+            if(activeEl) {
+                const img = activeEl.querySelector('img');
+                img.className = ''; // reset
+                img.classList.add(cls);
+            }
+        }
+
+        function addNewImage() {
+            // Create container
+            const div = document.createElement('div');
+            div.className = 'drag-item image-obj';
+            div.style.top = '50%'; div.style.left = '50%';
+            
+            // Create Image
+            const img = document.createElement('img');
+            img.src = 'https://via.placeholder.com/100'; // Placeholder
+            img.style.width = '100px'; img.style.height = '100px';
+            img.style.objectFit = 'cover';
+            
+            div.appendChild(img);
+            document.getElementById('mainCanvas').appendChild(div);
+            
+            initDragItem(div); // Add events
+            selectItem(div); // Auto Select
+            
+            // Trigger upload immediately
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.onchange = e => {
+                if(e.target.files[0]) {
+                    const r = new FileReader();
+                    r.onload = ev => img.src = ev.target.result;
+                    r.readAsDataURL(e.target.files[0]);
+                }
+            };
+            fileInput.click();
+        }
+
+        function removeActiveElement() {
+            if(activeEl) {
+                activeEl.remove();
+                activeEl = null;
+                document.getElementById('btnEdit').style.display = 'none';
+                closePanels();
+            }
+        }
+
+        // Global
+        function setMode(m) {
+            document.getElementById('mainCanvas').className = 'mode-' + m;
+            setTimeout(fitCanvas, 50);
+            closePanels();
+        }
+        function setMainBg(input) {
+            if(input.files[0]) {
+                const r = new FileReader();
+                r.onload = e => document.getElementById('mainCanvas').style.backgroundImage = `url(${e.target.result})`;
+                r.readAsDataURL(input.files[0]);
+            }
+        }
+        function closePanels() {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        }
+        function openPanel(id) {
+            closePanels();
+            document.getElementById(id).classList.add('active');
+        }
+
+
+        // --- 5. DRAG LOGIC ---
+        let isDrag = false;
+        let startX, startY, initLeft, initTop;
+
+        // Container Listener (Prevent Scroll)
+        document.getElementById('workspace').addEventListener('touchmove', e => { if(isDrag) e.preventDefault(); }, {passive:false});
+
+        function dragStart(e) {
+            isDrag = true;
+            activeEl = this; // 'this' is the element
+            selectItem(this);
+
+            const evt = e.touches ? e.touches[0] : e;
+            startX = evt.clientX;
+            startY = evt.clientY;
+            initLeft = this.offsetLeft;
+            initTop = this.offsetTop;
+        }
+
+        // Global Move
+        window.addEventListener('touchmove', dragMove, {passive:false});
+        window.addEventListener('mousemove', dragMove);
+
+        function dragMove(e) {
+            if(!isDrag || !activeEl) return;
+            const evt = e.touches ? e.touches[0] : e;
+            const dx = evt.clientX - startX;
+            const dy = evt.clientY - startY;
+            
+            activeEl.style.left = (initLeft + dx) + 'px';
+            activeEl.style.top = (initTop + dy) + 'px';
+        }
+
+        window.addEventListener('touchend', () => isDrag = false);
+        window.addEventListener('mouseup', () => isDrag = false);
+
+        // --- 6. DOWNLOAD ---
+        function downloadImage() {
+            // Clean UI
+            document.querySelectorAll('.drag-item').forEach(i => i.classList.remove('selected'));
+            document.getElementById('btnEdit').style.display = 'none';
+            closePanels();
+            
+            const cv = document.getElementById("mainCanvas");
+            const tr = cv.style.transform;
+            cv.style.transform = 'scale(1)'; // Full Res
+            
+            html2canvas(cv, { scale: 2, useCORS: true }).then(c => {
+                const link = document.createElement('a');
+                link.download = 'chakradham-ad.png';
+                link.href = c.toDataURL("image/png");
+                link.click();
+                cv.style.transform = tr; // Restore
+            });
+        }
+    </script>
+</body>
+</html>

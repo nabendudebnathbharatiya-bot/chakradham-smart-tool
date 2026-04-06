@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chakradham Ad Studio Pro V5.1</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=SolaimanLipi&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* --- CHAKRADHAM THEME VARIABLES --- */
+        :root {
+            --primary: #1e3a8a;
+            --dark: #0f172a;
+            --accent: #fbbf24;
+            --teal: #0d9488;
+            --bg-workspace: #cbd5e1;
+        }
+
+        body {
+            font-family: 'SolaimanLipi', 'Hind Siliguri', sans-serif;
+            margin: 0;
+            background-color: var(--bg-workspace);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            touch-action: none; 
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+            height: 60px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+        .logo-title { font-weight: bold; color: var(--primary); font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+
+        /* --- WORKSPACE --- */
+        .workspace {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            background-image: radial-gradient(#94a3b8 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        #mainCanvas {
+            background: white;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            transform-origin: center center; /* Keeps it centered while scaling */
+        }
+
+        /* Draggable Items */
+        .drag-item {
+            position: absolute;
+            cursor: move;
+            padding: 5px;
+            z-index: 10;
+            border: 2px solid transparent;
+            user-select: none;
+            line-height: 1.3;
+            transform-origin: top left;
+        }
+        
+        .drag-item.selected {
+            border: 4px dashed #ef4444;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 15;
+        }
+
+        /* Image Shapes */
+        .shape-round { border-radius: 50%; }
+        .shape-square { border-radius: 0; }
+        .shape-rounded { border-radius: 30px; }
+
+        /* --- BOTTOM CONTROLS --- */
+        .bottom-bar {
+            position: absolute; bottom: 20px; left: 0; right: 0;
+            display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+            pointer-events: none;
+            z-index: 25;
+            padding: 0 10px;
+        }
+
+        .bar-btn {
+            pointer-events: auto;
+            background: white; color: var(--dark);
+            border: none; padding: 12px 20px;
+            border-radius: 50px; font-weight: bold; font-family: inherit;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: flex; align-items: center; gap: 8px;
+            cursor: pointer; transition: 0.2s; font-size: 0.9rem;
+        }
+        .bar-btn:active { transform: scale(0.95); }
+        .bar-btn.primary { background: var(--primary); color: white; }
+        .btn-edit { background: var(--teal); color: white; display: none; }
+
+        /* --- SLIDE-UP PANELS --- */
+        .panel {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; border-radius: 20px 20px 0 0;
+            padding: 20px; box-sizing: border-box;
+            transform: translateY(110%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 30; max-height: 70vh; overflow-y: auto;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+        }
+        .panel.active { transform: translateY(0); }
+        
+        @media (min-width: 768px) {
+            .panel { width: 400px; left: auto; right: 20px; border-radius: 20px; bottom: 20px; transform: translateX(120%); max-height: 80vh; }
+            .panel.active { transform: translateX(0); }
+            .bottom-bar { bottom: 30px; }
+        }
+
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        .panel-header h3 { margin: 0; color: var(--primary); font-size: 1.2rem; }
+        .close-btn { background: #f1f5f9; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; color: #64748b; }
+
+        .control-row { margin-bottom: 15px; }
+        label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: #475569; }
+        input[type="text"], input[type="range"], select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
+        textarea { resize: vertical; height: 80px; }
+        .color-picker { height: 45px; padding: 2px; width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; }
+
+        .shape-selector, .flex-row { display: flex; gap: 10px; }
+        .flex-col { flex: 1; }
+        .shape-btn { flex: 1; height: 40px; background: #e2e8f0; border: none; cursor: pointer; }
+        .btn-danger { background: #ef4444; color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .template-btn { background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; color: var(--primary); transition: 0.2s; }
+        .template-btn:hover { background: #e0f2fe; border-color: #38bdf8; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-title"><i class="fa-solid fa-fan fa-spin" style="color:var(--accent);"></i> চক্রধাম স্টুডিও</div>
+        <button onclick="downloadImage()" class="bar-btn primary" style="padding: 8px 15px;">
+            <i class="fa-solid fa-download"></i> HD সেভ
+        </button>
+    </header>
+
+    <div class="workspace" id="workspace">
+        <div id="mainCanvas" style="background-color: var(--dark);">
+            <div id="bgOverlay" style="position:absolute; inset:0; background:rgba(0,0,0,0); pointer-events:none; z-index:0;"></div>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <button class="bar-btn" onclick="openPanel('panelGlobal')"><i class="fa-solid fa-layer-group"></i> সাইজ ও টেমপ্লেট</button>
+        <button class="bar-btn" onclick="addNewText()"><i class="fa-solid fa-t"></i> টেক্সট</button>
+        <button class="bar-btn" onclick="addNewImage()"><i class="fa-regular fa-image"></i> ছবি</button>
+        <button id="btnEdit" class="bar-btn btn-edit" onclick="openEditMenu()"><i class="fa-solid fa-pen"></i> এডিট করুন</button>
+    </div>
+
+    <div id="panelText" class="panel">
+        <div class="panel-header">
+            <h3>✏️ টেক্সট এডিটর</h3>
+            <button class="close-btn" onclick="closePanels()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="control-row">
+            <label>লেখা পরিবর্তন করুন</label>
+            <textarea id="txtVal" oninput="updateText()"></textarea>
+        </div>
+
+        <div class="control-row flex-row">
+            <div class="flex-col">
+                <label>ফন্ট সাইজ</label>
+                <input type="range" id="txtSize" min="20" max="250" oninput="updateStyle('fontSize', this.value+'px')">
+            </div>
+            <div class="flex-col">
+                <label>টেক্সট এলাইন</label>
+                <select onchange="updateStyle('textAlign', this.value)">
+                    <option value="left">Left (বাম)</option>
+                    <option value="center">Center (মাঝে)</option>
+                    <option value="right">Right (ডান)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-row flex-row">
+            <div class="flex-col">
+                <label>টেক্সট কালার</label>
+                <input type="color" id="txtColor" class="color-picker" oninput="updateStyle('color', this.value)">
+            </div>
+            <div class="flex-col">
+                <label>ব্যাকগ্রাউন্ড কালার</label>
+                <input type="color" id="txtBg" class="color-picker" value="#ffffff" oninput="updateStyle('backgroundColor', this.value)">
+                <label style="font-weight:normal; margin-top:5px;"><input type="checkbox" onchange="toggleTxBg(this)"> ব্যাকগ্রাউন্ড অন</label>
+            </div>
+        </div>
+        <button class="btn-danger" onclick="removeActiveElement()"><i class="fa-solid fa-trash"></i> ডিলিট করুন</button>
+    </div>
+
+    <div id="panelImage" class="panel">
+        <div class="panel-header">
+            <h3>🖼️ ছবি এডিটর</h3>
+            <button class="close-btn" onclick="closePanels()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="control-row">
+            <label>নতুন ছবি আপলোড করুন</label>
+            <input type="file" accept="image/*" onchange="updateImgSrc(this)" style="padding: 5px;">
+        </div>
+
+        <div class="control-row">
+            <label>ছবির সাইজ</label>
+            <input type="range" id="imgSize" min="100" max="1000" oninput="updateImgSize(this.value)">
+        </div>
+
+        <div class="control-row">
+            <label>ছবির আকৃতি (Shape)</label>
+            <div class="shape-selector">
+                <button class="shape-btn shape-square" onclick="setImgShape('shape-square')"></button>
+                <button class="shape-btn shape-rounded" onclick="setImgShape('shape-rounded')" style="border-radius:15px;"></button>
+                <button class="shape-btn shape-round" onclick="setImgShape('shape-round')" style="border-radius:50%;"></button>
+            </div>
+        </div>
+        <button class="btn-danger" onclick="removeActiveElement()"><i class="fa-solid fa-trash"></i> ডিলিট করুন</button>
+    </div>
+
+    <div id="panelGlobal" class="panel">
+        <div class="panel-header">
+            <h3>⚙️ সোশ্যাল মিডিয়া সাইজ ও টেমপ্লেট</h3>
+            <button class="close-btn" onclick="closePanels()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="control-row">
+            <label style="color: var(--primary);">১. ক্যানভাসের আকার (Practical Sizes)</label>
+            <div class="template-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 15px;">
+                <button class="bar-btn" style="justify-content:center; border:1px solid #cbd5e1; border-radius:8px;" onclick="setMode('square')">Square (FB/IG Post)</button>
+                <button class="bar-btn" style="justify-content:center; border:1px solid #cbd5e1; border-radius:8px;" onclick="setMode('story')">Story/Reels</button>
+                <button class="bar-btn" style="justify-content:center; border:1px solid #cbd5e1; border-radius:8px;" onclick="setMode('landscape')">Web Ad (Landscape)</button>
+                <button class="bar-btn" style="justify-content:center; border:1px solid #cbd5e1; border-radius:8px;" onclick="setMode('youtube')">YouTube Thumb</button>
+            </div>
+        </div>
+
+        <div class="control-row flex-row">
+            <div class="flex-col">
+                <label>ব্যাকগ্রাউন্ড কালার</label>
+                <input type="color" class="color-picker" value="#0f172a" oninput="document.getElementById('mainCanvas').style.backgroundColor = this.value; document.getElementById('mainCanvas').style.backgroundImage = 'none';">
+            </div>
+            <div class="flex-col">
+                <label>ব্যাকগ্রাউন্ড ছবি</label>
+                <input type="file" accept="image/*" onchange="setMainBg(this)" style="padding: 5px; width: 100%;">
+            </div>
+        </div>
+
+        <div class="control-row">
+            <label>ছবির ওপর কালো আস্তরণ (Overlay Opacity)</label>
+            <input type="range" min="0" max="0.9" step="0.1" value="0" oninput="document.getElementById('bgOverlay').style.backgroundColor = `rgba(0,0,0,${this.value})`">
+        </div>
+
+        <div class="control-row" style="margin-top: 25px;">
+            <label style="color: var(--primary); font-size: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px;">২. রেডিমেড টেমপ্লেট প্রয়োগ করুন</label>
+            <div class="template-grid">
+                <div class="template-btn" onclick="loadTemplate('single')">একক রোগ ভিত্তিক</div>
+                <div class="template-btn" onclick="loadTemplate('beforeAfter')">আগে ও পরে (Before/After)</div>
+                <div class="template-btn" onclick="loadTemplate('testimonial')">রোগীর রিভিউ (Review)</div>
+                <div class="template-btn" onclick="loadTemplate('clear')">🧹 সব মুছুন (Clear All)</div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- 1. CORE VARIABLES & STANDARD SIZES ---
+        let activeEl = null;
+        const mainCanvas = document.getElementById('mainCanvas');
+        
+        // Exact pixel dimensions for Social Media standards
+        const CANVAS_SIZES = {
+            'square': { width: 1080, height: 1080 },
+            'story': { width: 1080, height: 1920 },
+            'landscape': { width: 1200, height: 630 },
+            'youtube': { width: 1280, height: 720 }
+        };
+        let currentMode = 'square'; // Default mode
+
+        // --- 2. EXACT CANVAS SCALING LOGIC ---
+        function fitCanvas() {
+            const ws = document.getElementById('workspace');
+            const availableWidth = ws.clientWidth - 40; 
+            const availableHeight = ws.clientHeight - 100; 
+            
+            // Get hardcoded sizes from our dictionary
+            const targetWidth = CANVAS_SIZES[currentMode].width;
+            const targetHeight = CANVAS_SIZES[currentMode].height;
+
+            // Apply absolute dimensions to the canvas
+            mainCanvas.style.width = targetWidth + 'px';
+            mainCanvas.style.height = targetHeight + 'px';
+
+            // Calculate shrink scale to fit the screen visually
+            const scale = Math.min(availableWidth / targetWidth, availableHeight / targetHeight);
+            mainCanvas.style.transform = `scale(${scale})`;
+        }
+        
+        window.onload = () => { loadTemplate('single'); }; 
+        window.onresize = fitCanvas;
+
+        function setMode(modeKey) {
+            currentMode = modeKey;
+            fitCanvas(); // Immediately fit with new exact dimensions
+            closePanels();
+        }
+
+        // --- 3. ELEMENT CREATION ---
+        function createDragItem(type) {
+            const div = document.createElement('div');
+            div.className = `drag-item ${type}-obj`;
+            div.style.top = '40%'; 
+            div.style.left = '40%';
+            
+            if(type === 'text') {
+                div.innerText = "নতুন টেক্সট এখানে";
+                div.style.fontSize = "60px"; 
+                div.style.color = "#ffffff";
+                div.style.fontWeight = "bold";
+                div.style.fontFamily = "'SolaimanLipi', sans-serif";
+            } else if(type === 'image') {
+                const img = document.createElement('img');
+                img.src = 'https://via.placeholder.com/400?text=Upload+Image';
+                img.style.width = '300px'; 
+                img.style.height = '300px';
+                img.style.objectFit = 'cover';
+                img.className = 'shape-rounded';
+                div.appendChild(img);
+            }
+
+            mainCanvas.appendChild(div);
+            initDragItem(div);
+            selectItem(div);
+            return div;
+        }
+
+        function addNewText() { closePanels(); createDragItem('text'); }
+        function addNewImage() { closePanels(); const el = createDragItem('image'); document.getElementById('btnEdit').click(); }
+
+        // --- 4. DRAG & DROP + SELECTION LOGIC ---
+        let isDrag = false;
+        let startX, startY, initLeft, initTop;
+
+        document.getElementById('workspace').addEventListener('touchmove', e => { if(isDrag) e.preventDefault(); }, {passive:false});
+
+        function initDragItem(item) {
+            item.addEventListener('mousedown', (e) => { e.stopPropagation(); selectItem(item); dragStart(e, item); });
+            item.addEventListener('touchstart', (e) => { e.stopPropagation(); selectItem(item); dragStart(e, item); }, {passive: false});
+        }
+
+        mainCanvas.addEventListener('mousedown', deselectAll);
+        mainCanvas.addEventListener('touchstart', deselectAll);
+
+        function deselectAll(e) {
+            if(e.target === mainCanvas || e.target.id === 'bgOverlay') {
+                document.querySelectorAll('.drag-item').forEach(i => i.classList.remove('selected'));
+                activeEl = null;
+                document.getElementById('btnEdit').style.display = 'none';
+                closePanels();
+            }
+        }
+
+        function selectItem(item) {
+            activeEl = item;
+            document.querySelectorAll('.drag-item').forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            document.getElementById('btnEdit').style.display = 'flex';
+        }
+
+        function dragStart(e, item) {
+            isDrag = true;
+            const evt = e.touches ? e.touches[0] : e;
+            const scale = mainCanvas.getBoundingClientRect().width / mainCanvas.offsetWidth;
+            
+            startX = evt.clientX / scale;
+            startY = evt.clientY / scale;
+            initLeft = parseFloat(item.style.left) || item.offsetLeft;
+            initTop = parseFloat(item.style.top) || item.offsetTop;
+        }
+
+        window.addEventListener('touchmove', dragMove, {passive:false});
+        window.addEventListener('mousemove', dragMove);
+
+        function dragMove(e) {
+            if(!isDrag || !activeEl) return;
+            const evt = e.touches ? e.touches[0] : e;
+            const scale = mainCanvas.getBoundingClientRect().width / mainCanvas.offsetWidth;
+            
+            const dx = (evt.clientX / scale) - startX;
+            const dy = (evt.clientY / scale) - startY;
+            
+            activeEl.style.left = (initLeft + dx) + 'px';
+            activeEl.style.top = (initTop + dy) + 'px';
+        }
+
+        window.addEventListener('touchend', () => isDrag = false);
+        window.addEventListener('mouseup', () => isDrag = false);
+
+        // --- 5. EDITING MENUS ---
+        function openEditMenu() {
+            if(!activeEl) return;
+            closePanels();
+            
+            if(activeEl.classList.contains('text-obj')) {
+                document.getElementById('panelText').classList.add('active');
+                document.getElementById('txtVal').value = activeEl.innerText;
+                document.getElementById('txtSize').value = parseInt(window.getComputedStyle(activeEl).fontSize) || 60;
+            } else if(activeEl.classList.contains('image-obj')) {
+                document.getElementById('panelImage').classList.add('active');
+                const img = activeEl.querySelector('img');
+                document.getElementById('imgSize').value = img.offsetWidth;
+            }
+        }
+
+        function updateText() { if(activeEl) activeEl.innerText = document.getElementById('txtVal').value; }
+        function updateStyle(prop, val) { if(activeEl) activeEl.style[prop] = val; }
+        
+        function toggleTxBg(chk) {
+            if(activeEl) {
+                activeEl.style.backgroundColor = chk.checked ? document.getElementById('txtBg').value : 'transparent';
+                activeEl.style.padding = chk.checked ? '15px 30px' : '5px';
+                activeEl.style.borderRadius = chk.checked ? '15px' : '0';
+            }
+        }
+
+        function updateImgSize(val) {
+            if(activeEl) {
+                const img = activeEl.querySelector('img');
+                img.style.width = val + 'px'; img.style.height = val + 'px';
+            }
+        }
+        
+        function updateImgSrc(input) {
+            if(input.files[0] && activeEl) {
+                const r = new FileReader();
+                r.onload = (e) => activeEl.querySelector('img').src = e.target.result;
+                r.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function setImgShape(cls) {
+            if(activeEl) {
+                const img = activeEl.querySelector('img');
+                img.className = ''; img.classList.add(cls);
+            }
+        }
+
+        function removeActiveElement() {
+            if(activeEl) {
+                activeEl.remove(); activeEl = null;
+                document.getElementById('btnEdit').style.display = 'none';
+                closePanels();
+            }
+        }
+
+        // --- 6. PANELS & GLOBAL SETTINGS ---
+        function closePanels() { document.querySelectorAll('.panel').forEach(p => p.classList.remove('active')); }
+        function openPanel(id) { closePanels(); document.getElementById(id).classList.add('active'); }
+
+        function setMainBg(input) {
+            if(input.files[0]) {
+                const r = new FileReader();
+                r.onload = e => {
+                    mainCanvas.style.backgroundImage = `url(${e.target.result})`;
+                    document.getElementById('bgOverlay').style.backgroundColor = 'rgba(0,0,0,0.5)'; 
+                };
+                r.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // --- 7. TEMPLATE ENGINE ---
+        function clearCanvas() {
+            const items = document.querySelectorAll('.drag-item');
+            items.forEach(i => i.remove());
+        }
+
+        function loadTemplate(type) {
+            clearCanvas();
+            closePanels();
+            
+            // Set base mode depending on template (Default to Square for templates)
+            setMode('square'); 
+            mainCanvas.style.backgroundColor = '#0f172a';
+            mainCanvas.style.backgroundImage = 'none';
+
+            if(type !== 'clear') {
+                const logo = createDragItem('text');
+                logo.innerHTML = `<div style="border:3px solid var(--accent); border-radius:50%; width:80px; height:80px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1);">⚡</div>`;
+                logo.style.top = '40px'; logo.style.left = '40px';
+
+                const brand = createDragItem('text');
+                brand.innerText = "চক্রধাম"; brand.style.color = "var(--accent)"; brand.style.fontSize = "45px";
+                brand.style.top = '55px'; brand.style.left = '140px';
+                
+                const cta = createDragItem('text');
+                cta.innerText = "বিস্তারিত জানতে কল করুন: +91 6296378080";
+                cta.style.fontSize = "35px"; cta.style.backgroundColor = "var(--primary)";
+                cta.style.padding = "20px 40px"; cta.style.borderRadius = "50px";
+                cta.style.top = '920px'; cta.style.left = '160px'; 
+            }
+
+            if(type === 'single') {
+                const title = createDragItem('text');
+                title.innerText = "গবেষণার ইতিকথা:\nএক যুগান্তকারী আবিষ্কার!";
+                title.style.color = "var(--accent)"; title.style.fontSize = "70px";
+                title.style.top = '180px'; title.style.left = '50px';
+
+                const sub = createDragItem('text');
+                sub.innerText = "'Zero Energy' কসমিক হিলিং\nসম্পূর্ণ পার্শ্বপ্রতিক্রিয়াহীন প্রাকৃতিক নিরাময়";
+                sub.style.fontSize = "45px"; sub.style.color = "#ffffff";
+                sub.style.top = '400px'; sub.style.left = '50px';
+
+                const img = createDragItem('image');
+                img.style.top = '550px'; img.style.left = '50px';
+                img.querySelector('img').style.width = '300px'; img.querySelector('img').style.height = '300px';
+            } 
+            else if(type === 'beforeAfter') {
+                const title = createDragItem('text');
+                title.innerText = "অবিশ্বাস্য পরিবর্তন!";
+                title.style.color = "var(--accent)"; title.style.fontSize = "80px";
+                title.style.top = '180px'; title.style.left = '200px';
+
+                const imgBefore = createDragItem('image');
+                imgBefore.style.top = '350px'; imgBefore.style.left = '100px';
+                imgBefore.querySelector('img').style.width = '400px'; imgBefore.querySelector('img').style.height = '400px';
+                
+                const txtBefore = createDragItem('text');
+                txtBefore.innerText = "আগে (Before)"; txtBefore.style.backgroundColor = "#ef4444";
+                txtBefore.style.padding = "10px 25px"; txtBefore.style.borderRadius = "15px"; txtBefore.style.fontSize = "35px";
+                txtBefore.style.top = '280px'; txtBefore.style.left = '180px';
+
+                const imgAfter = createDragItem('image');
+                imgAfter.style.top = '350px'; imgAfter.style.left = '550px';
+                imgAfter.querySelector('img').style.width = '400px'; imgAfter.querySelector('img').style.height = '400px';
+
+                const txtAfter = createDragItem('text');
+                txtAfter.innerText = "পরে (After) ✨"; txtAfter.style.backgroundColor = "#10b981";
+                txtAfter.style.padding = "10px 25px"; txtAfter.style.borderRadius = "15px"; txtAfter.style.fontSize = "35px";
+                txtAfter.style.top = '280px'; txtAfter.style.left = '630px';
+            }
+            else if(type === 'testimonial') {
+                const reviewBox = createDragItem('text');
+                reviewBox.innerText = "\"দীর্ঘদিনের ব্যথায় ভুগছিলাম, \nচক্রধাম থেরাপির পর এখন আমি সম্পূর্ণ সুস্থ!\"";
+                reviewBox.style.fontSize = "50px"; reviewBox.style.fontStyle = "italic";
+                reviewBox.style.backgroundColor = "rgba(255,255,255,0.1)"; reviewBox.style.padding = "40px";
+                reviewBox.style.borderRadius = "30px";
+                reviewBox.style.top = '250px'; reviewBox.style.left = '80px';
+
+                const rating = createDragItem('text');
+                rating.innerText = "★★★★★"; rating.style.color = "var(--accent)"; rating.style.fontSize = "70px";
+                rating.style.top = '500px'; rating.style.left = '400px';
+
+                const patientImg = createDragItem('image');
+                patientImg.style.top = '580px'; patientImg.style.left = '380px';
+                patientImg.querySelector('img').style.width = '300px'; patientImg.querySelector('img').style.height = '300px';
+                patientImg.querySelector('img').className = 'shape-round';
+            }
+            
+            deselectAll({target: mainCanvas}); 
+        }
+
+        // --- 8. HIGH QUALITY DOWNLOAD ---
+        function downloadImage() {
+            deselectAll({target: mainCanvas}); 
+            const oldTransform = mainCanvas.style.transform;
+            mainCanvas.style.transform = 'scale(1)'; 
+
+            setTimeout(() => {
+                html2canvas(mainCanvas, { scale: 1.5, useCORS: true, backgroundColor: null }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `Chakradham_HD_Ad_${Date.now()}.png`;
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
+                    mainCanvas.style.transform = oldTransform; 
+                });
+            }, 400);
+        }
+
+    </script>
+</body>
+</html>

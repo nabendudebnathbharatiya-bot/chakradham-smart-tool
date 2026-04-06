@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
+    <title>চক্রধাম ওনলাইন ডিরেক্টরি</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style id="dynamic-style-container"></style>
+</head>
+
+<body class="min-h-screen pb-24 text-gray-800">
+
+    <header class="glass-header sticky top-0 z-50 px-4 py-3 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-2">
+            <div class="w-10 h-10 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md">
+                D
+            </div>
+            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-700">ডিরেক্টরি</h1>
+        </div>
+        <a href="https://chakra-login-app.vercel.app/" target="_self" class="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all active:scale-95">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+    </header>
+
+    <div class="sticky top-[65px] z-40 bg-gray-50/90 backdrop-blur-md border-b border-gray-200">
+        <div class="max-w-3xl mx-auto p-2">
+            <div id="adLoading" class="text-center py-2 text-indigo-500 text-sm font-semibold flex justify-center items-center gap-2 hidden">
+                <i class="fa-solid fa-spinner fa-spin"></i> অ্যাড লোড হচ্ছে...
+            </div>
+            <div id="adContainer" class="w-full h-40 md:h-56 overflow-hidden rounded-xl shadow-sm relative bg-white hidden">
+                <a id="adTargetLink" href="#" target="_self" class="block w-full h-full">
+                    <img id="adBannerImg" src="" alt="Ad" class="w-full h-full object-cover" />
+                    <span class="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1.5 rounded">Ad</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-3xl mx-auto px-4 pt-6">
+        
+        <div class="py-6 px-2 text-center">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">প্রয়োজনীয় বিজ্ঞাপন তৈরির অ্যাপ</h2>
+            <p class="text-gray-800 text-base leading-relaxed">এই ডিরেক্টরিতে আপনি বিভিন্ন গুরুত্বপূর্ণ টুলস, বিজ্ঞাপন এর ছবি তৈরীর এবং ওয়েব অ্যাপ্লিকেশনের কালেকশন পাবেন। যেকোনো অ্যাপ সহজেই খুঁজে পেতে নিচে আইডি বা নাম লিখে সার্চ করুন।</p>
+        </div>
+
+        <div class="relative mb-8 group">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fa-solid fa-search text-gray-400 group-focus-within:text-indigo-500 transition-colors"></i>
+            </div>
+            <input type="text" id="searchInput" onkeyup="filterCards()" placeholder="অ্যাপের নাম বা ID লিখে সার্চ করুন..." 
+                   class="w-full pl-11 pr-4 py-4 glass-card rounded-2xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all shadow-sm placeholder-gray-400 font-medium">
+        </div>
+
+        <div id="dataLoading" class="text-center py-10 text-indigo-500 font-semibold hidden">
+            <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 block"></i> ডেটা লোড হচ্ছে...
+        </div>
+
+        <div id="appGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-5"></div>
+
+        <div id="noResult" class="hidden text-center py-10 text-gray-500">
+            <i class="fa-regular fa-folder-open text-4xl mb-3 opacity-50 block"></i>
+            <p>কোনো অ্যাপ পাওয়া যায়নি!</p>
+        </div>
+
+    </main>
+
+    <nav class="fixed bottom-0 left-0 w-full glass-header pt-3 pb-4 px-6 rounded-t-2xl z-50 flex justify-around items-center text-gray-500 text-xs font-medium">
+        <a href="#" class="flex flex-col items-center gap-1 text-indigo-600 active:scale-95 transition-transform">
+            <i class="fa-solid fa-house text-lg"></i>
+            <span>হোম</span>
+        </a>
+        <a href="#" onclick="showFavoritesOnly()" class="flex flex-col items-center gap-1 hover:text-indigo-600 active:scale-95 transition-transform">
+            <i class="fa-solid fa-heart text-lg"></i>
+            <span>ফেভারিট</span>
+        </a>
+        <a href="#" class="flex flex-col items-center gap-1 hover:text-indigo-600 active:scale-95 transition-transform">
+            <i class="fa-solid fa-compass text-lg"></i>
+            <span>এক্সপ্লোর</span>
+        </a>
+        <a href="#" class="flex flex-col items-center gap-1 hover:text-indigo-600 active:scale-95 transition-transform">
+            <i class="fa-solid fa-user text-lg"></i>
+            <span>প্রোফাইল</span>
+        </a>
+    </nav>
+
+    <script>
+        // --- 0. DYNAMIC CSS FETCHING LOGIC ---
+        async function fetchStyleData() {
+            try {
+                const cacheBuster = `?v=${new Date().getTime()}`;
+                const response = await fetch(`style.css${cacheBuster}`);
+                if (response.ok) {
+                    const cssText = await response.text();
+                    document.getElementById('dynamic-style-container').textContent = cssText;
+                } else {
+                    console.error("CSS ফাইল পাওয়া যায়নি।");
+                }
+            } catch (error) {
+                console.error("Style Fetch Error:", error);
+            }
+        }
+
+        // --- 1. GLOBAL AD MANAGEMENT & BRIDGE LOGIC ---
+        const BASE_AD_URL = "https://nabendudebnathbharatiya-bot.github.io/webpage_gallery_directory_app/ad-manage/";
+        let bannerAdsList = [];
+        let currentAdIndex = 0;
+        let currentBridgePage = "ad_bridge.html"; // গ্লোবাল ব্রিজ পেজ ভ্যারিয়েবল
+
+        async function initAdSystem() {
+            const adContainer = document.getElementById('adContainer');
+            try {
+                const cacheBuster = `?v=${new Date().getTime()}`;
+                const switchRes = await fetch(`${BASE_AD_URL}ad_switch.txt${cacheBuster}`);
+                let mode = "regular";
+                if (switchRes.ok) {
+                    const switchLines = (await switchRes.text()).split('\n');
+                    for (let line of switchLines) {
+                        line = line.trim();
+                        if (line && !line.startsWith('//') && !line.startsWith('#')) { mode = line; break; }
+                    }
+                }
+
+                // মোড অনুযায়ী ব্রিজ পেজ সেট করা হচ্ছে
+                currentBridgePage = mode === "special" ? "ad_bridge-one.html" : "ad_bridge.html";
+                const adFile = mode === "special" ? "ads1.txt" : "ads.txt";
+                
+                const adsRes = await fetch(`${BASE_AD_URL}${adFile}${cacheBuster}`);
+                
+                if (adsRes.ok) {
+                    const adLines = (await adsRes.text()).split('\n');
+                    for (let line of adLines) {
+                        line = line.trim();
+                        if (line && !line.startsWith('//') && !line.startsWith('#')) {
+                            let parts = line.split('|');
+                            if (parts.length >= 2) {
+                                bannerAdsList.push({ image: parts[0].trim(), link: parts[1].trim() });
+                            }
+                        }
+                    }
+                }
+
+                if (bannerAdsList.length > 0) {
+                    adContainer.classList.remove('hidden');
+                    updateBanner();
+                    setInterval(() => {
+                        currentAdIndex = (currentAdIndex + 1) % bannerAdsList.length;
+                        updateBanner();
+                    }, 5000);
+                }
+            } catch (error) { console.error("Ad Fetch Error:", error); }
+        }
+
+        function updateBanner() {
+            const ad = bannerAdsList[currentAdIndex];
+            document.getElementById('adBannerImg').src = ad.image + `?v=${new Date().getTime()}`;
+            document.getElementById('adTargetLink').href = ad.link;
+        }
+
+        // --- 2. UNIVERSAL BRIDGE REDIRECT FUNCTION ---
+        function openWithBridge(originalLink) {
+            if(!originalLink || originalLink === "#") {
+                alert("দুঃখিত, এই অ্যাপটির লিংক এখনো যুক্ত করা হয়নি!");
+                return;
+            }
+            // টার্গেট লিংকটি এনকোড করে ব্রিজ পেজের সাথে যুক্ত করা হচ্ছে
+            let finalBridgeUrl = BASE_AD_URL + currentBridgePage + "?target=" + encodeURIComponent(originalLink);
+            window.location.href = finalBridgeUrl;
+        }
+
+        // --- 3. DIRECTORY DATA FETCH & RENDER LOGIC ---
+        let appDataList = [];
+        
+        async function fetchAppData() {
+            document.getElementById('dataLoading').classList.remove('hidden');
+            try {
+                const cacheBuster = `?v=${new Date().getTime()}`;
+                const response = await fetch(`apps_data.txt${cacheBuster}`);
+                
+                if(response.ok) {
+                    const textData = await response.text();
+                    const lines = textData.split('\n');
+                    
+                    for (let line of lines) {
+                        line = line.trim();
+                        if (!line || line.startsWith('//')) continue;
+                        
+                        let parts = line.split('|').map(item => item.trim());
+                        if (parts.length >= 5) {
+                            appDataList.push({
+                                id: parts[0], title: parts[1], desc: parts[2], link: parts[3], icon: parts[4]
+                            });
+                        }
+                    }
+                } else {
+                    loadDemoData(); 
+                }
+            } catch (error) {
+                loadDemoData();
+            }
+            
+            document.getElementById('dataLoading').classList.add('hidden');
+            renderCards(appDataList);
+        }
+
+        function loadDemoData() {
+            appDataList = [
+                { id: "101", title: "Human Pathology Ref", desc: "সমস্ত প্যাথলজিক্যাল টেস্টের বিস্তারিত রেফারেন্স ও পরামর্শ।", link: "#", icon: "fa-notes-medical" },
+                { id: "102", title: "Bengali TTS Tool", desc: "বাংলা ও হিন্দি ভাষার জন্য আনলিমিটেড টেক্সট টু স্পিচ কনভার্টার।", link: "https://example.com/tts", icon: "fa-language" }
+            ];
+        }
+
+        function renderCards(data) {
+            const grid = document.getElementById('appGrid');
+            grid.innerHTML = "";
+            let favs = JSON.parse(localStorage.getItem('favApps')) || [];
+
+            if(data.length === 0) {
+                document.getElementById('noResult').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('noResult').classList.add('hidden');
+
+            data.forEach(app => {
+                const isFav = favs.includes(app.id);
+                const heartClass = isFav ? "fa-solid text-red-500" : "fa-regular text-gray-400";
+                
+                const card = document.createElement('div');
+                card.className = "glass-card rounded-2xl p-5 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 relative group app-card";
+                card.setAttribute('data-id', app.id);
+                card.setAttribute('data-title', app.title.toLowerCase());
+                
+                // এখানে <a> ট্যাগের বদলে <button onclick="openWithBridge()"> ব্যবহার করা হয়েছে
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-md">ID: ${app.id}</span>
+                        <button onclick="toggleFavorite('${app.id}', this)" class="p-1.5 rounded-full hover:bg-red-50 transition-colors active:scale-90 z-10">
+                            <i class="fa-heart text-xl ${heartClass} transition-colors"></i>
+                        </button>
+                    </div>
+                    <div class="flex gap-4 items-start mb-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center text-indigo-500 text-xl flex-shrink-0 shadow-inner">
+                            <i class="fa-solid ${app.icon}"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800 leading-tight mb-1 group-hover:text-indigo-600 transition-colors">${app.title}</h3>
+                            <p class="text-sm text-gray-500 line-clamp-2">${app.desc}</p>
+                        </div>
+                    </div>
+                    <button onclick="openWithBridge('${app.link}')" class="block w-full text-center bg-gray-900 hover:bg-indigo-600 text-white font-medium py-2.5 rounded-xl transition-all active:scale-95">
+                        ওপেন করুন <i class="fa-solid fa-arrow-right text-xs ml-1"></i>
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCards() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filtered = appDataList.filter(app => 
+                app.id.includes(query) || app.title.toLowerCase().includes(query)
+            );
+            renderCards(filtered);
+        }
+
+        function toggleFavorite(id, btnElement) {
+            let favs = JSON.parse(localStorage.getItem('favApps')) || [];
+            const icon = btnElement.querySelector('i');
+            
+            if (favs.includes(id)) {
+                favs = favs.filter(favId => favId !== id);
+                icon.classList.remove('fa-solid', 'text-red-500');
+                icon.classList.add('fa-regular', 'text-gray-400');
+            } else {
+                favs.push(id);
+                icon.classList.remove('fa-regular', 'text-gray-400');
+                icon.classList.add('fa-solid', 'text-red-500');
+            }
+            localStorage.setItem('favApps', JSON.stringify(favs));
+        }
+
+        let showingFavs = false;
+        function showFavoritesOnly() {
+            showingFavs = !showingFavs;
+            const favLink = document.querySelectorAll('nav a')[1];
+            
+            if(showingFavs) {
+                favLink.classList.add('text-indigo-600');
+                favLink.classList.remove('text-gray-500');
+                let favs = JSON.parse(localStorage.getItem('favApps')) || [];
+                const filtered = appDataList.filter(app => favs.includes(app.id));
+                renderCards(filtered);
+            } else {
+                favLink.classList.remove('text-indigo-600');
+                favLink.classList.add('text-gray-500');
+                renderCards(appDataList);
+            }
+        }
+
+        // Initialize
+        window.onload = () => {
+            fetchStyleData(); 
+            initAdSystem();   
+            fetchAppData();   
+        };
+    </script>
+</body>
+</html>

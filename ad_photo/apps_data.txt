@@ -1,0 +1,8 @@
+// ID | App Name | Description | link| FontAwesome Icon
+
+
+101 | AD STUDIO PRO| বিভিন্ন MODE অনুযায়ী বিজ্ঞাপনের ছবি  তৈরি এডিট করুন| https://nabendudebnathbharatiya-bot.github.io/chakradham-smart-tool/ad_photo/admaker.html| fa-notes-medical
+
+102 | BANNER BOOK STYLE| বুক ও ব্যানার|https://nabendudebnathbharatiya-bot.github.io/chakradham-smart-tool/ad_photo/banner-book-style.html| fa-language
+
+103 | TEMPLATE PHOTO | টেমপ্লেট |https://nabendudebnathbharatiya-bot.github.io/chakradham-smart-tool/ad_photo/template.html| fa-images

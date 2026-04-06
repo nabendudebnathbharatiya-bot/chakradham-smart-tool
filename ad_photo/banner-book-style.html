@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>বুক স্টাইল ব্যানার মেকার</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Tiro+Bangla:ital@0;1&family=Noto+Serif+Bengali:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --accent: #f43f5e;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Noto Serif Bengali', serif; /* ডিফল্ট ফন্ট */
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* ১. হেডার সেকশন */
+        header {
+            width: 100%;
+            background: var(--surface);
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        header h2 { margin: 0; font-size: 1.2rem; color: var(--primary); }
+
+        /* ২. ক্যানভাস এরিয়া (যেখানে ডিজাইন হবে) */
+        .canvas-container {
+            margin: 20px auto;
+            overflow: auto;
+            max-width: 95vw;
+            max-height: 60vh;
+            border: 1px solid var(--border);
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        #mainCanvas {
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: width 0.3s, height 0.3s;
+            /* ডিফল্ট সাইজ */
+            width: 300px;
+            height: 300px;
+        }
+
+        /* ৩. ড্র্যাগেবল আইটেম (ছবি ও লেখা) */
+        .item {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            border: 1px dashed transparent;
+            padding: 5px;
+            touch-action: none; /* মোবাইলে স্ক্রল বন্ধ রাখবে ড্র্যাগ করার সময় */
+        }
+
+        .item.selected {
+            border: 2px dashed var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .item img {
+            width: 100px; /* ডিফল্ট */
+            pointer-events: none;
+            display: block;
+        }
+
+        .item p {
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        /* ৪. কন্ট্রোল প্যানেল (নিচে থাকবে) */
+        .controls {
+            width: 100%;
+            max-width: 500px;
+            background: var(--surface);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            box-sizing: border-box;
+            /* স্টিকি ফুটার হিসেবে রাখতে চাইলে নিচের ২ লাইন আনকমেন্ট করুন */
+            /* position: fixed; bottom: 0; */
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #64748b;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="number"], select, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        /* স্লাইডার স্টাইল */
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* বাটন স্টাইল */
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn.outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn.danger {
+            background: var(--accent);
+            margin-top: 5px;
+        }
+
+        /* ফন্ট অপশন */
+        .font-option {
+            font-size: 1.1rem;
+        }
+        .font-tiro { font-family: 'Tiro Bangla', serif; }
+        .font-merri { font-family: 'Merriweather', serif; }
+        .font-noto { font-family: 'Noto Serif Bengali', serif; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>📚 বুক স্টাইল মেকার</h2>
+    </header>
+
+    <div class="canvas-container">
+        <div id="mainCanvas">
+            </div>
+    </div>
+
+    <div class="controls">
+        
+        <div class="control-group">
+            <label><i class="fas fa-expand"></i> ডিজাইন কার্ড সাইজ (px)</label>
+            <div class="row">
+                <input type="number" id="cWidth" value="300" placeholder="W" onchange="resizeCanvas()">
+                <span>x</span>
+                <input type="number" id="cHeight" value="300" placeholder="H" onchange="resizeCanvas()">
+            </div>
+            <label style="margin-top:10px;">ব্যাকগ্রাউন্ড কালার</label>
+            <input type="color" id="cColor" value="#ffffff" style="width:100%; height:40px;" onchange="document.getElementById('mainCanvas').style.backgroundColor = this.value">
+        </div>
+
+        <div class="control-group" id="editPanel" style="opacity: 0.5; pointer-events: none;">
+            <label style="color: var(--primary);">🛠 সিলেক্টেড আইটেম এডিট</label>
+            
+            <label>সাইজ পরিবর্তন করুন:</label>
+            <input type="range" id="sizeSlider" min="10" max="500" value="100" oninput="updateElementSize()">
+            
+            <div id="fontControls" style="display:none; margin-top:10px;">
+                <label>ফন্ট স্টাইল (বইয়ের মতো):</label>
+                <select id="fontFamily" onchange="updateFont()">
+                    <option value="'Noto Serif Bengali', serif" class="font-noto">সাধারণ বই (Noto Serif)</option>
+                    <option value="'Tiro Bangla', serif" class="font-tiro">কাব্যিক (Tiro Bangla)</option>
+                    <option value="'Merriweather', serif" class="font-merri">ইংরেজি ক্লাসিক (Merriweather)</option>
+                </select>
+                <div class="row" style="margin-top:10px;">
+                    <input type="color" id="textColor" value="#000000" onchange="updateColor()" style="width:50px; height:40px;">
+                    <button onclick="deleteElement()" class="btn danger" style="margin-top:0; font-size:0.8rem;">ডিলিট করুন</button>
+                </div>
+            </div>
+            
+            <div id="imgControls" style="display:none; margin-top:10px;">
+                 <button onclick="deleteElement()" class="btn danger" style="margin-top:0;">ছবি ডিলিট করুন</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div class="row">
+                <button class="btn outline" onclick="document.getElementById('imgInput').click()">
+                    <i class="fas fa-image"></i> ছবি যোগ
+                </button>
+                <input type="file" id="imgInput" hidden accept="image/*" onchange="addImage(this)">
+
+                <button class="btn outline" onclick="addText()">
+                    <i class="fas fa-font"></i> লেখা যোগ
+                </button>
+            </div>
+        </div>
+
+        <button class="btn" onclick="downloadDesign()">
+            <i class="fas fa-download"></i> ডিজাইন সেভ করুন
+        </button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        let selectedElement = null;
+
+        // ১. ক্যানভাস রিসাইজ ফাংশন
+        function resizeCanvas() {
+            const w = document.getElementById('cWidth').value;
+            const h = document.getElementById('cHeight').value;
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+        }
+
+        // ২. ছবি যোগ করা
+        function addImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    div.style.left = '50px';
+                    div.style.top = '50px';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.width = '150px'; // ডিফল্ট শুরু
+                    
+                    div.appendChild(img);
+                    canvas.appendChild(div);
+                    setupInteractions(div, 'image');
+                    selectElement(div, 'image'); // যোগ করার সাথে সাথে সিলেক্ট হবে
+                };
+                reader.readAsDataURL(input.files[0]);
+                input.value = '';
+            }
+        }
+
+        // ৩. লেখা যোগ করা
+        function addText() {
+            const text = prompt("আপনার লেখাটি লিখুন:", "বইয়ের পাতা");
+            if (!text) return;
+
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.style.left = '50px';
+            div.style.top = '50px';
+
+            const p = document.createElement('p');
+            p.innerText = text;
+            p.style.fontSize = '24px';
+            p.style.fontFamily = "'Tiro Bangla', serif"; // ডিফল্ট বইয়ের ফন্ট
+            
+            div.appendChild(p);
+            canvas.appendChild(div);
+            setupInteractions(div, 'text');
+            selectElement(div, 'text');
+        }
+
+        // ৪. ইন্টার‍্যাকশন সেটআপ (ক্লিক এবং ড্র্যাগ)
+        function setupInteractions(element, type) {
+            // মাউস ডাউন বা টাচ স্টার্টে সিলেক্ট হবে
+            element.addEventListener('mousedown', (e) => { selectElement(element, type); });
+            element.addEventListener('touchstart', (e) => { selectElement(element, type); }, {passive: false});
+
+            // ড্র্যাগ লজিক
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
+
+            function startDrag(e) {
+                isDragging = true;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                startX = clientX;
+                startY = clientY;
+                initialLeft = element.offsetLeft;
+                initialTop = element.offsetTop;
+            }
+
+            function doDrag(e) {
+                if (!isDragging) return;
+                e.preventDefault(); // মোবাইলে স্ক্রল বন্ধ করা
+                
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+
+                element.style.left = (initialLeft + dx) + 'px';
+                element.style.top = (initialTop + dy) + 'px';
+            }
+
+            function stopDrag() {
+                isDragging = false;
+            }
+
+            element.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', doDrag);
+            document.addEventListener('mouseup', stopDrag);
+
+            element.addEventListener('touchstart', startDrag, {passive: false});
+            document.addEventListener('touchmove', doDrag, {passive: false});
+            document.addEventListener('touchend', stopDrag);
+        }
+
+        // ৫. এলিমেন্ট সিলেক্ট করা এবং কন্ট্রোল প্যানেল আপডেট করা
+        function selectElement(element, type) {
+            // আগের সিলেকশন বাদ দেওয়া
+            if (selectedElement) {
+                selectedElement.classList.remove('selected');
+            }
+            selectedElement = element;
+            selectedElement.classList.add('selected');
+
+            // এডিট প্যানেল চালু করা
+            const editPanel = document.getElementById('editPanel');
+            editPanel.style.opacity = '1';
+            editPanel.style.pointerEvents = 'all';
+
+            const slider = document.getElementById('sizeSlider');
+            const fontControls = document.getElementById('fontControls');
+            const imgControls = document.getElementById('imgControls');
+
+            if (type === 'text') {
+                fontControls.style.display = 'block';
+                imgControls.style.display = 'none';
+                // বর্তমান ফন্ট সাইজ স্লাইডারে সেট করা
+                const currentSize = parseInt(window.getComputedStyle(element.querySelector('p')).fontSize);
+                slider.value = currentSize;
+                slider.max = 200; // লেখার জন্য ম্যাক্স সাইজ
+            } else {
+                fontControls.style.display = 'none';
+                imgControls.style.display = 'block';
+                // বর্তমান ইমেজ উইডথ স্লাইডারে সেট করা
+                const currentWidth = parseInt(window.getComputedStyle(element.querySelector('img')).width);
+                slider.value = currentWidth;
+                slider.max = document.getElementById('cWidth').value; // ছবির জন্য ম্যাক্স সাইজ ক্যানভাস সমান
+            }
+        }
+
+        // ৬. সাইজ আপডেট (স্লাইডার দিয়ে)
+        function updateElementSize() {
+            if (!selectedElement) return;
+            const size = document.getElementById('sizeSlider').value;
+
+            if (selectedElement.querySelector('img')) {
+                // ছবির সাইজ বাড়ালে উইডথ বাড়বে
+                selectedElement.querySelector('img').style.width = size + 'px';
+            } else {
+                // লেখার সাইজ বাড়ালে ফন্ট সাইজ বাড়বে
+                selectedElement.querySelector('p').style.fontSize = size + 'px';
+            }
+        }
+
+        // ৭. ফন্ট ফ্যামিলি আপডেট
+        function updateFont() {
+            if (selectedElement && selectedElement.querySelector('p')) {
+                selectedElement.querySelector('p').style.fontFamily = document.getElementById('fontFamily').value;
+            }
+        }
+
+        // ৮. কালার আপডেট
+        function updateColor() {
+            if (selectedElement && selectedElement.querySelector('p')) {
+                selectedElement.querySelector('p').style.color = document.getElementById('textColor').value;
+            }
+        }
+
+        // ৯. ডিলিট করা
+        function deleteElement() {
+            if (selectedElement) {
+                selectedElement.remove();
+                selectedElement = null;
+                document.getElementById('editPanel').style.opacity = '0.5';
+                document.getElementById('editPanel').style.pointerEvents = 'none';
+            }
+        }
+
+        // ১০. ডাউনলোড করা
+        function downloadDesign() {
+            // সিলেকশন বর্ডার সরানো
+            if (selectedElement) selectedElement.classList.remove('selected');
+
+            html2canvas(canvas, { scale: 2 }).then(c => {
+                const link = document.createElement('a');
+                link.download = 'book-style-banner.png';
+                link.href = c.toDataURL();
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>

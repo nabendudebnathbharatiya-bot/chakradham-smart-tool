@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chakra Editor - GitHub Pro Max</title>
+   
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -345,13 +350,28 @@
         }
 
         function renameFile(id, e) { e.stopPropagation(); let file=getCurrentProject().files.find(f=>f.id===id); let n=prompt("Rename to (use '/' for folders):", file.name); if(n&&n.trim()!==""){file.name=n.trim(); saveDB(); renderFileList(); openFile(db.currentFileId);} }
-        function clearCurrentFile() { let file=getCurrentProject().files.find(f=>f.id===db.currentFileId); if(file&&file.type==='code'){if(confirm("Clear code?")) editor.setValue('');}else alert("Media cannot be cleared here."); }
         
-        // --- MULTIPLE FILE IMPORT ---
-        async function handleImport(e) { 
+function clearCurrentFile() { let file = getCurrentProject().files.find(f => f.id === db.currentFileId); if (file && file.type === 'code') { if (confirm("Clear code?")) editor.setValue(''); } else alert("Media cannot be cleared here."); }
+
+// --- MULTIPLE FILE IMPORT (UPDATED FOR FOLDER SELECTION) ---
+async function handleImport(e) {
             const files = e.target.files; 
             if(!files || files.length === 0) return; 
             
+            // +++ নতুন যুক্ত করা অংশ: ফোল্ডারের নাম চাওয়া +++
+            let targetFolder = prompt("কোন ফোল্ডারে আপলোড করতে চান? (মূল ডিরেক্টরির জন্য ফাঁকা রাখুন):\nউদাহরণ: assets/images", "");
+            
+            if (targetFolder === null) {
+                e.target.value = ''; // ইউজার Cancel করলে আপলোড বাতিল হবে
+                return;
+            }
+            
+            // ফোল্ডারের নামের শেষে '/' না থাকলে যোগ করে দেওয়া
+            if (targetFolder !== "" && !targetFolder.endsWith('/')) {
+                targetFolder += '/';
+            }
+            // ++++++++++++++++++++++++++++++++++++++++++++++
+
             let project = getCurrentProject();
             let addedCount = 0;
 
@@ -375,8 +395,18 @@
                     if(isText) r.readAsText(file); else r.readAsDataURL(file);
                 });
 
-                let newFile = {id:'f_'+Date.now()+Math.floor(Math.random()*10000), name:file.name, type:type, content:content}; 
+                // +++ ফাইলের নামের আগে ফোল্ডারের পাথ যুক্ত করা +++
+                let finalFileName = targetFolder + file.name;
+
+                let newFile = {id:'f_'+Date.now()+Math.floor(Math.random()*10000), name: finalFileName, type:type, content:content}; 
                 project.files.push(newFile);
+                
+                // নতুন ফোল্ডারটি ট্রি-ভিউতে সাথে সাথে ওপেন দেখানোর জন্য
+                if (targetFolder !== "") {
+                    let folderPathOnly = targetFolder.slice(0, -1);
+                    openFolders.add(folderPathOnly);
+                }
+                
                 addedCount++;
             }
             
@@ -387,7 +417,6 @@
             }
             e.target.value = ''; 
         }
-
         function newFile() { let currentFile = getCurrentProject().files.find(f => f.id === db.currentFileId); let defaultPath = ""; if (currentFile && currentFile.name.includes('/')) { let parts = currentFile.name.split('/'); parts.pop(); defaultPath = parts.join('/') + '/'; } let n = prompt("File name (use '/' to make folder):", defaultPath + "new.html"); if (n && n.trim() !== "") { let newName = n.trim(); let project = getCurrentProject(); if (project.files.some(f => f.name === newName)) return alert("File already exists!"); project.files.push({id: 'f_' + Date.now(), name: newName, type: 'code', content: ''}); let folderPathParts = newName.split('/'); folderPathParts.pop(); if(folderPathParts.length > 0) openFolders.add(folderPathParts.join('/')); saveDB(); renderFileList(); openFile(project.files.slice(-1)[0].id); } }
         function deleteFile(id, e) { e.stopPropagation(); let p = getCurrentProject(); if(p.files.length <= 1) return alert("Cannot delete last file!"); if(confirm("Delete this file?")){ p.files = p.files.filter(f => f.id !== id); db.currentFileId = p.files[0].id; saveDB(); renderFileList(); openFile(db.currentFileId); } }
 

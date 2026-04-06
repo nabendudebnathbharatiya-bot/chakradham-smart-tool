@@ -74,7 +74,7 @@ Type:বিজ্ঞাপনের ছবি তৈরি করার অ্�
 
 Date: 25 MAR 2026
 
-Link: ad-photo-maker/index.html
+Link: ad_photo/index.html
 
 ---
 

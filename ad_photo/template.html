@@ -3,14 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chakradham Ad Studio Pro V7 - Fixed App Layout</title>
-    
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-
-    <meta http-equiv="Pragma" content="no-cache">
-
-    <meta http-equiv="Expires" content="0">
-    
+    <title>Chakradham Ad Studio Pro V8 - Image Shapes Fixed</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=SolaimanLipi&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
@@ -27,15 +20,14 @@
             --bg-panel: #ffffff;
         }
 
-        /* 🔴 1. পুরো বডি লক করা হলো যাতে মেইন পেজ কোনোভাবেই স্ক্রল না হয় 🔴 */
         body, html {
             font-family: 'SolaimanLipi', 'Hind Siliguri', sans-serif;
             margin: 0;
             padding: 0;
             background-color: #0f172a;
-            height: 100dvh; /* 100dvh ensures it fits mobile perfectly */
+            height: 100dvh; 
             overflow: hidden !important; 
-            touch-action: none; /* Blocks browser pull-to-refresh */
+            touch-action: none; 
         }
 
         .app-container {
@@ -65,7 +57,7 @@
 
         /* --- WORKSPACE --- */
         .workspace {
-            height: 45vh; /* ফিক্সড হাইট */
+            height: 45vh; 
             position: relative; 
             overflow: hidden;
             background-image: radial-gradient(#94a3b8 1px, transparent 1px);
@@ -73,7 +65,6 @@
             background-color: #cbd5e1;
             flex-shrink: 0;
             border-bottom: 2px solid #94a3b8;
-            /* ক্যানভাসে টাচ করলে যেন কিছু না হয় */
             touch-action: none; 
         }
 
@@ -108,9 +99,11 @@
             z-index: 15;
         }
 
-        .shape-round { border-radius: 50%; }
-        .shape-square { border-radius: 0; }
-        .shape-rounded { border-radius: 30px; }
+        /* 🔴 নতুন ইমেজ শেপ ও রেশিও 🔴 */
+        .shape-round { border-radius: 50%; aspect-ratio: 1 / 1; }
+        .shape-square { border-radius: 8px; aspect-ratio: 1 / 1; }
+        .shape-portrait { border-radius: 8px; aspect-ratio: 3 / 4; } /* লম্বালম্বি 3:4 সাইজ */
+        .shape-landscape { border-radius: 8px; aspect-ratio: 16 / 9; } /* আয়তক্ষেত্র 16:9 সাইজ */
 
         /* --- ACTION TOOLBAR --- */
         .action-toolbar {
@@ -134,15 +127,15 @@
         .btn-tool:active { transform: scale(0.95); }
         .btn-save { background: var(--teal); color: white; border: none; }
 
-        /* 🔴 2. শুধুমাত্র এই অংশটি স্ক্রল হবে (Scrollable Content Area) 🔴 */
+        /* --- SETTINGS AREA --- */
         .settings-container {
             padding: 20px;
             flex: 1;
             background: white;
-            overflow-y: auto; /* শুধু এখানে স্ক্রল হবে */
-            -webkit-overflow-scrolling: touch; /* মোবাইলের জন্য স্মুথ স্ক্রল */
-            padding-bottom: 40px; /* নিচের দিকে কিছুটা জায়গা রাখা হলো */
-            touch-action: pan-y; /* এখানে শুধু উপর-নিচ স্ক্রল পারমিটেড */
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; 
+            padding-bottom: 40px; 
+            touch-action: pan-y; 
         }
 
         .section-title {
@@ -166,8 +159,7 @@
         .flex-row { display: flex; gap: 15px; }
         .flex-col { flex: 1; }
         
-        .shape-selector { display: flex; gap: 10px; }
-        .shape-btn { flex: 1; height: 45px; background: #e2e8f0; border: 2px solid transparent; cursor: pointer; transition: 0.2s; border-radius: 8px; font-weight: bold; color: #475569; }
+        .shape-btn { flex: 1; height: 45px; background: #e2e8f0; border: 2px solid transparent; cursor: pointer; transition: 0.2s; border-radius: 8px; font-weight: bold; color: #475569; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .shape-btn:hover { border-color: var(--primary); }
         
         .btn-danger { background: #fee2e2; color: #ef4444; width: 100%; padding: 14px; border: 1px dashed #ef4444; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1rem; }
@@ -305,10 +297,11 @@
 
                 <div class="control-row">
                     <label>ছবির আকৃতি (Shape)</label>
-                    <div class="shape-selector">
-                        <button class="shape-btn shape-square" onclick="setImgShape('shape-square')">চারকোনা</button>
-                        <button class="shape-btn shape-rounded" onclick="setImgShape('shape-rounded')">রাউন্ডেড</button>
-                        <button class="shape-btn shape-round" onclick="setImgShape('shape-round')">গোল</button>
+                    <div class="template-grid">
+                        <button class="shape-btn" onclick="setImgShape('shape-square')"><i class="fa-regular fa-square"></i> চারকোনা</button>
+                        <button class="shape-btn" onclick="setImgShape('shape-round')"><i class="fa-regular fa-circle"></i> গোল</button>
+                        <button class="shape-btn" onclick="setImgShape('shape-portrait')"><i class="fa-solid fa-image-portrait"></i> লম্বালম্বি</button>
+                        <button class="shape-btn" onclick="setImgShape('shape-landscape')"><i class="fa-regular fa-image"></i> আয়তক্ষেত্র</button>
                     </div>
                 </div>
                 
@@ -361,7 +354,6 @@
             deselectAll({target: mainCanvas}); 
         }
 
-        // --- ELEMENT CREATION ---
         function createDragItem(type) {
             const div = document.createElement('div');
             div.className = `drag-item ${type}-obj`;
@@ -378,9 +370,9 @@
                 const img = document.createElement('img');
                 img.src = 'https://via.placeholder.com/400?text=Upload+Image';
                 img.style.width = '400px'; 
-                img.style.height = '400px';
+                img.style.height = 'auto'; // Aspect Ratio যেন কাজ করে তাই এটি Auto রাখা হলো
                 img.style.objectFit = 'cover';
-                img.className = 'shape-rounded';
+                img.className = 'shape-square';
                 div.appendChild(img);
             }
 
@@ -393,11 +385,9 @@
         function addNewText() { createDragItem('text'); }
         function addNewImage() { createDragItem('image'); }
 
-        // --- 🔴 PERFECT DRAG & DROP LOGIC (FIXED) 🔴 ---
         let isDrag = false;
         let startX, startY, initLeft, initTop;
 
-        // Force prevent default on workspace to completely stop page dragging
         workspace.addEventListener('touchmove', function(e) {
             e.preventDefault();
         }, { passive: false });
@@ -425,7 +415,6 @@
             document.querySelectorAll('.editor-section').forEach(p => p.classList.remove('active'));
             document.getElementById(panelId).classList.add('active');
             
-            // 🔴 Auto-scroll fix: Now it ONLY scrolls the internal container back to the top 🔴
             if(panelId !== 'panelGlobal') {
                 settingsContainer.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -482,7 +471,6 @@
         window.addEventListener('touchend', endDrag);
         window.addEventListener('mouseup', endDrag);
 
-        // --- ELEMENT MODIFICATION ---
         function updateText() { if(activeEl) activeEl.innerText = document.getElementById('txtVal').value; }
         function updateStyle(prop, val) { if(activeEl) activeEl.style[prop] = val; }
         
@@ -494,10 +482,12 @@
             }
         }
 
+        /* 🔴 ছবির সাইজ আপডেটের নতুন লজিক 🔴 */
         function updateImgSize(val) {
             if(activeEl) {
                 const img = activeEl.querySelector('img');
-                img.style.width = val + 'px'; img.style.height = val + 'px';
+                img.style.width = val + 'px';
+                img.style.height = 'auto'; // Aspect Ratio যেন ঠিক থাকে তাই Height Auto রাখা হলো
             }
         }
         
@@ -512,7 +502,8 @@
         function setImgShape(cls) {
             if(activeEl) {
                 const img = activeEl.querySelector('img');
-                img.className = ''; img.classList.add(cls);
+                img.className = ''; 
+                img.classList.add(cls);
             }
         }
 
@@ -534,7 +525,6 @@
             }
         }
 
-        // --- TEMPLATE ENGINE ---
         function clearCanvas() {
             document.querySelectorAll('.drag-item').forEach(i => i.remove());
         }
@@ -576,7 +566,8 @@
 
                 const img = createDragItem('image');
                 img.style.top = '580px'; img.style.left = '50px';
-                img.querySelector('img').style.width = '300px'; img.querySelector('img').style.height = '300px';
+                img.querySelector('img').style.width = '300px'; img.querySelector('img').style.height = 'auto';
+                img.querySelector('img').className = 'shape-square';
             } 
             else if(type === 'beforeAfter') {
                 const title = createDragItem('text');
@@ -586,7 +577,8 @@
 
                 const imgBefore = createDragItem('image');
                 imgBefore.style.top = '350px'; imgBefore.style.left = '80px';
-                imgBefore.querySelector('img').style.width = '420px'; imgBefore.querySelector('img').style.height = '420px';
+                imgBefore.querySelector('img').style.width = '420px'; imgBefore.querySelector('img').style.height = 'auto';
+                imgBefore.querySelector('img').className = 'shape-square';
                 
                 const txtBefore = createDragItem('text');
                 txtBefore.innerText = "আগে (Before)"; txtBefore.style.backgroundColor = "#ef4444";
@@ -595,7 +587,8 @@
 
                 const imgAfter = createDragItem('image');
                 imgAfter.style.top = '350px'; imgAfter.style.left = '550px';
-                imgAfter.querySelector('img').style.width = '420px'; imgAfter.querySelector('img').style.height = '420px';
+                imgAfter.querySelector('img').style.width = '420px'; imgAfter.querySelector('img').style.height = 'auto';
+                imgAfter.querySelector('img').className = 'shape-square';
 
                 const txtAfter = createDragItem('text');
                 txtAfter.innerText = "পরে (After) ✨"; txtAfter.style.backgroundColor = "#10b981";
@@ -616,14 +609,13 @@
 
                 const patientImg = createDragItem('image');
                 patientImg.style.top = '600px'; patientImg.style.left = '370px';
-                patientImg.querySelector('img').style.width = '320px'; patientImg.querySelector('img').style.height = '320px';
+                patientImg.querySelector('img').style.width = '320px'; patientImg.querySelector('img').style.height = 'auto';
                 patientImg.querySelector('img').className = 'shape-round';
             }
             
             deselectAll({target: mainCanvas}); 
         }
 
-        // --- HIGH QUALITY DOWNLOAD ---
         function downloadImage() {
             deselectAll({target: mainCanvas}); 
             const oldTransform = mainCanvas.style.transform;

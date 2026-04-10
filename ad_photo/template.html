@@ -3,19 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-
-    <title>Chakradham Ad Studio Pro V9 - Export Fixed</title>
+    
+    <title>Chakradham Ad Studio Pro V10 - Final Stable</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=SolaimanLipi&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* --- CHAKRADHAM THEME VARIABLES --- */
         :root {
             --primary: #1e3a8a;
             --dark: #0f172a;
@@ -27,11 +23,10 @@
 
         body, html {
             font-family: 'SolaimanLipi', 'Hind Siliguri', sans-serif;
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: #0f172a;
             height: 100dvh; 
-            overflow: hidden !important; 
+            overflow: hidden !important; /* পুরো বডি স্ক্রল লক */
             touch-action: none; 
         }
 
@@ -47,20 +42,17 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        /* --- HEADER --- */
         header {
             background: white;
             padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
             z-index: 20;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             flex-shrink: 0;
         }
         .logo-title { font-weight: bold; color: var(--primary); font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
 
-        /* --- WORKSPACE --- */
+        /* 🔴 নতুন ওয়ার্কস্পেস লেআউট (Flexbox) 🔴 */
         .workspace {
             height: 45vh; 
             position: relative; 
@@ -71,13 +63,21 @@
             flex-shrink: 0;
             border-bottom: 2px solid #94a3b8;
             touch-action: none; 
+            display: flex; /* Flexbox ব্যবহার করে ক্যানভাস মাঝে রাখা হলো */
+            align-items: center;
+            justify-content: center;
         }
 
+        /* এই Wrapper টি ক্যানভাসকে জুম ইন/আউট করবে */
+        #canvasWrapper {
+            transform-origin: center center;
+            transition: transform 0.1s ease;
+        }
+
+        /* মূল ক্যানভাস, এর নিজস্ব কোনো Transform থাকবে না */
         #mainCanvas {
             background: white;
-            position: absolute;
-            left: 50%;
-            top: 50%;
+            position: relative;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
             background-size: cover;
             background-position: center;
@@ -85,7 +85,6 @@
             touch-action: none; 
         }
 
-        /* Draggable Items */
         .drag-item {
             position: absolute;
             cursor: move;
@@ -98,60 +97,37 @@
             touch-action: none; 
         }
         
-        .drag-item.selected {
-            border: 4px dashed #ef4444;
-            background: rgba(255, 255, 255, 0.1);
-            z-index: 15;
-        }
+        .drag-item.selected { border: 4px dashed #ef4444; background: rgba(255, 255, 255, 0.1); z-index: 15; }
 
         .shape-round { border-radius: 50%; aspect-ratio: 1 / 1; }
         .shape-square { border-radius: 8px; aspect-ratio: 1 / 1; }
         .shape-portrait { border-radius: 8px; aspect-ratio: 3 / 4; }
         .shape-landscape { border-radius: 8px; aspect-ratio: 16 / 9; } 
 
-        /* --- ACTION TOOLBAR --- */
         .action-toolbar {
-            display: flex;
-            gap: 10px;
-            padding: 12px 15px;
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-            flex-shrink: 0;
+            display: flex; gap: 10px; padding: 12px 15px;
+            background: #f8fafc; border-bottom: 1px solid #e2e8f0; flex-shrink: 0;
         }
 
         .btn-tool {
-            flex: 1;
-            background: white; color: var(--primary);
-            border: 1px solid #cbd5e1; padding: 10px;
-            border-radius: 8px; font-weight: bold; font-family: inherit;
+            flex: 1; background: white; color: var(--primary);
+            border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; font-weight: bold; 
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            cursor: pointer; transition: 0.2s; font-size: 0.95rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer; font-size: 0.95rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .btn-tool:active { transform: scale(0.95); }
         .btn-save { background: var(--teal); color: white; border: none; }
 
-        /* --- SETTINGS AREA --- */
+        /* শুধুমাত্র এই অংশটি স্ক্রল হবে */
         .settings-container {
-            padding: 20px;
-            flex: 1;
-            background: white;
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch; 
-            padding-bottom: 40px; 
-            touch-action: pan-y; 
+            padding: 20px; flex: 1; background: white;
+            overflow-y: auto; -webkit-overflow-scrolling: touch; 
+            padding-bottom: 40px; touch-action: pan-y; 
         }
 
         .section-title {
-            color: var(--primary);
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #f1f5f9;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            color: var(--primary); font-size: 1.1rem; font-weight: bold;
+            margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9;
+            display: flex; align-items: center; gap: 8px;
         }
 
         .control-row { margin-bottom: 15px; }
@@ -163,24 +139,20 @@
         .flex-row { display: flex; gap: 15px; }
         .flex-col { flex: 1; }
         
-        .shape-btn { flex: 1; height: 45px; background: #e2e8f0; border: 2px solid transparent; cursor: pointer; transition: 0.2s; border-radius: 8px; font-weight: bold; color: #475569; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .shape-btn { flex: 1; height: 45px; background: #e2e8f0; border: 2px solid transparent; cursor: pointer; border-radius: 8px; font-weight: bold; color: #475569; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .shape-btn:hover { border-color: var(--primary); }
         
         .btn-danger { background: #fee2e2; color: #ef4444; width: 100%; padding: 14px; border: 1px dashed #ef4444; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1rem; }
         
         .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .template-btn { background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px 10px; border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; color: var(--primary); transition: 0.2s; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+        .template-btn { background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px 10px; border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; color: var(--primary); font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
         .template-btn i { font-size: 1.5rem; color: var(--teal); }
-        .template-btn:hover { background: #e0f2fe; border-color: #38bdf8; }
         
-        .size-btn { padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; font-weight: bold; color: #475569; cursor: pointer; transition: 0.2s; }
+        .size-btn { padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; font-weight: bold; color: #475569; cursor: pointer; }
         .size-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        .editor-section { display: none; animation: fadeIn 0.2s ease-in; }
+        .editor-section { display: none; }
         .editor-section.active { display: block; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
         .helper-text { background: #fffbeb; color: #d97706; padding: 10px; border-radius: 8px; font-size: 0.85rem; text-align: center; border: 1px dashed #fcd34d; margin-bottom: 20px; }
     </style>
 </head>
@@ -196,8 +168,10 @@
         </header>
 
         <div class="workspace" id="workspace">
-            <div id="mainCanvas" style="background-color: var(--dark);">
-                <div id="bgOverlay" style="position:absolute; inset:0; background:rgba(0,0,0,0); pointer-events:none; z-index:0;"></div>
+            <div id="canvasWrapper">
+                <div id="mainCanvas" style="background-color: var(--dark);">
+                    <div id="bgOverlay" style="position:absolute; inset:0; background:rgba(0,0,0,0); pointer-events:none; z-index:0;"></div>
+                </div>
             </div>
         </div>
 
@@ -252,53 +226,24 @@
 
             <div id="panelText" class="editor-section">
                 <div class="section-title"><i class="fa-solid fa-pen-nib"></i> টেক্সট এডিট করুন</div>
-                
-                <div class="control-row">
-                    <textarea id="txtVal" oninput="updateText()" placeholder="আপনার লেখা এখানে লিখুন..."></textarea>
-                </div>
-
+                <div class="control-row"><textarea id="txtVal" oninput="updateText()" placeholder="আপনার লেখা এখানে লিখুন..."></textarea></div>
                 <div class="control-row flex-row">
-                    <div class="flex-col">
-                        <label>ফন্ট সাইজ</label>
-                        <input type="range" id="txtSize" min="20" max="300" oninput="updateStyle('fontSize', this.value+'px')">
-                    </div>
-                    <div class="flex-col">
-                        <label>অ্যালাইনমেন্ট</label>
-                        <select onchange="updateStyle('textAlign', this.value)">
-                            <option value="left">Left (বাম)</option>
-                            <option value="center">Center (মাঝে)</option>
-                            <option value="right">Right (ডান)</option>
-                        </select>
+                    <div class="flex-col"><label>ফন্ট সাইজ</label><input type="range" id="txtSize" min="20" max="300" oninput="updateStyle('fontSize', this.value+'px')"></div>
+                    <div class="flex-col"><label>অ্যালাইনমেন্ট</label>
+                        <select onchange="updateStyle('textAlign', this.value)"><option value="left">Left (বাম)</option><option value="center">Center (মাঝে)</option><option value="right">Right (ডান)</option></select>
                     </div>
                 </div>
-
                 <div class="control-row flex-row">
-                    <div class="flex-col">
-                        <label>টেক্সটের রঙ</label>
-                        <input type="color" id="txtColor" class="color-picker" oninput="updateStyle('color', this.value)">
-                    </div>
-                    <div class="flex-col">
-                        <label>ব্যাকগ্রাউন্ড রঙ <input type="checkbox" onchange="toggleTxBg(this)" style="margin-left:5px;"></label>
-                        <input type="color" id="txtBg" class="color-picker" value="#ffffff" oninput="updateStyle('backgroundColor', this.value)">
-                    </div>
+                    <div class="flex-col"><label>টেক্সটের রঙ</label><input type="color" id="txtColor" class="color-picker" oninput="updateStyle('color', this.value)"></div>
+                    <div class="flex-col"><label>ব্যাকগ্রাউন্ড রঙ <input type="checkbox" onchange="toggleTxBg(this)" style="margin-left:5px;"></label><input type="color" id="txtBg" class="color-picker" value="#ffffff" oninput="updateStyle('backgroundColor', this.value)"></div>
                 </div>
-                
                 <button class="btn-danger" onclick="removeActiveElement()"><i class="fa-solid fa-trash-can"></i> এই লেখাটি ডিলিট করুন</button>
             </div>
 
             <div id="panelImage" class="editor-section">
                 <div class="section-title"><i class="fa-solid fa-crop-simple"></i> ছবি এডিট করুন</div>
-
-                <div class="control-row">
-                    <label>নতুন ছবি আপলোড করুন</label>
-                    <input type="file" accept="image/*" onchange="updateImgSrc(this)" style="padding: 9px;">
-                </div>
-
-                <div class="control-row">
-                    <label>ছবির সাইজ</label>
-                    <input type="range" id="imgSize" min="100" max="1500" oninput="updateImgSize(this.value)">
-                </div>
-
+                <div class="control-row"><label>নতুন ছবি আপলোড করুন</label><input type="file" accept="image/*" onchange="updateImgSrc(this)" style="padding: 9px;"></div>
+                <div class="control-row"><label>ছবির সাইজ</label><input type="range" id="imgSize" min="100" max="1500" oninput="updateImgSize(this.value)"></div>
                 <div class="control-row">
                     <label>ছবির আকৃতি (Shape)</label>
                     <div class="template-grid">
@@ -308,17 +253,16 @@
                         <button class="shape-btn" onclick="setImgShape('shape-landscape')"><i class="fa-regular fa-image"></i> আয়তক্ষেত্র</button>
                     </div>
                 </div>
-                
                 <button class="btn-danger" onclick="removeActiveElement()"><i class="fa-solid fa-trash-can"></i> এই ছবিটি ডিলিট করুন</button>
             </div>
 
         </div>
     </div>
 
-
     <script>
         let activeEl = null;
         const mainCanvas = document.getElementById('mainCanvas');
+        const canvasWrapper = document.getElementById('canvasWrapper');
         const workspace = document.getElementById('workspace');
         const settingsContainer = document.getElementById('settingsContainer');
         
@@ -337,12 +281,13 @@
             const targetWidth = CANVAS_SIZES[currentMode].width;
             const targetHeight = CANVAS_SIZES[currentMode].height;
 
+            // মূল ক্যানভাস সবসময় অরিজিনাল সাইজেই থাকবে (এটাই ডাউনলোডের সময় কাজ করবে)
             mainCanvas.style.width = targetWidth + 'px';
             mainCanvas.style.height = targetHeight + 'px';
 
+            // Wrapper টিকে স্কেল করে স্ক্রিনে ফিট করা হলো
             const scale = Math.min(availableWidth / targetWidth, availableHeight / targetHeight);
-            
-            mainCanvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
+            canvasWrapper.style.transform = `scale(${scale})`;
         }
         
         window.onload = () => { loadTemplate('single'); }; 
@@ -350,12 +295,10 @@
 
         function setMode(modeKey) {
             currentMode = modeKey;
-            
             document.querySelectorAll('.size-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('sz-' + modeKey).classList.add('active');
-
             fitCanvas(); 
-            deselectAll({target: mainCanvas}); 
+            deselectAll({target: workspace}); 
         }
 
         function createDragItem(type) {
@@ -392,6 +335,7 @@
         let isDrag = false;
         let startX, startY, initLeft, initTop;
 
+        // ওয়ার্কস্পেসে টাচ করলে স্ক্রলিং বন্ধ
         workspace.addEventListener('touchmove', function(e) {
             e.preventDefault();
         }, { passive: false });
@@ -407,7 +351,7 @@
         function deselectAll(e) {
             if(e && e.target && (e.target.closest('.settings-container') || e.target.closest('.action-toolbar') || e.target.closest('.drag-item'))) return;
 
-            if(e.target === mainCanvas || e.target.id === 'bgOverlay' || e.target === workspace) {
+            if(e.target === mainCanvas || e.target.id === 'bgOverlay' || e.target === workspace || e.target === canvasWrapper) {
                 document.querySelectorAll('.drag-item').forEach(i => i.classList.remove('selected'));
                 activeEl = null;
                 showSettingsPanel('panelGlobal');
@@ -418,7 +362,6 @@
         function showSettingsPanel(panelId) {
             document.querySelectorAll('.editor-section').forEach(p => p.classList.remove('active'));
             document.getElementById(panelId).classList.add('active');
-            
             if(panelId !== 'panelGlobal') {
                 settingsContainer.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -444,7 +387,10 @@
         function dragStart(e, item) {
             isDrag = true;
             const evt = e.touches ? e.touches[0] : e;
-            const scale = mainCanvas.getBoundingClientRect().width / mainCanvas.offsetWidth;
+            // স্কেল হিসাব করা (Wrapper এর স্কেল অনুযায়ী)
+            const transform = canvasWrapper.style.transform;
+            const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+            const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
             
             startX = evt.clientX / scale;
             startY = evt.clientY / scale;
@@ -457,9 +403,11 @@
 
         function dragMove(e) {
             if(!isDrag || !activeEl) return;
-            
             const evt = e.touches ? e.touches[0] : e;
-            const scale = mainCanvas.getBoundingClientRect().width / mainCanvas.offsetWidth;
+            
+            const transform = canvasWrapper.style.transform;
+            const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+            const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
             
             const dx = (evt.clientX / scale) - startX;
             const dy = (evt.clientY / scale) - startY;
@@ -510,7 +458,7 @@
         function removeActiveElement() {
             if(activeEl) {
                 activeEl.remove(); activeEl = null;
-                deselectAll({target: mainCanvas}); 
+                deselectAll({target: workspace}); 
             }
         }
 
@@ -525,13 +473,10 @@
             }
         }
 
-        function clearCanvas() {
-            document.querySelectorAll('.drag-item').forEach(i => i.remove());
-        }
+        function clearCanvas() { document.querySelectorAll('.drag-item').forEach(i => i.remove()); }
 
         function loadTemplate(type) {
             clearCanvas();
-            
             setMode('square'); 
             mainCanvas.style.backgroundColor = '#0f172a';
             mainCanvas.style.backgroundImage = 'none';
@@ -612,33 +557,24 @@
                 patientImg.querySelector('img').style.width = '320px'; patientImg.querySelector('img').style.height = 'auto';
                 patientImg.querySelector('img').className = 'shape-round';
             }
-            
-            deselectAll({target: mainCanvas}); 
+            deselectAll({target: workspace}); 
         }
 
-        // 🔴 ব্ল্যাক স্ক্রিন সমস্যার ফাইনাল ফিক্সড ডাউনলোড ফাংশন 🔴
+        // 🔴 100% PERFECT DOWNLOAD FUNCTION 🔴
         function downloadImage() {
-            deselectAll({target: mainCanvas}); 
+            deselectAll({target: workspace}); 
             
             const btn = document.querySelector('.btn-save');
             const originalText = btn.innerHTML;
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> সেভ হচ্ছে...`;
 
-            // 1. অরিজিনাল পজিশন ও ট্রান্সফর্ম সেভ করে রাখা
-            const oldTransform = mainCanvas.style.transform;
-            const oldLeft = mainCanvas.style.left;
-            const oldTop = mainCanvas.style.top;
-            const oldPosition = mainCanvas.style.position;
-
-            // 2. ছবি তোলার সুবিধার জন্য ক্যানভাসটি নরমাল লেআউটে আনা
-            mainCanvas.style.transform = 'scale(1)';
-            mainCanvas.style.left = '0';
-            mainCanvas.style.top = '0';
-            mainCanvas.style.position = 'relative';
+            // ڈاؤنলোড করার সময় স্কেল 1 করে দেওয়া হলো যাতে ব্ল্যাক স্ক্রিন না আসে
+            const oldTransform = canvasWrapper.style.transform;
+            canvasWrapper.style.transform = 'scale(1)';
 
             setTimeout(() => {
                 html2canvas(mainCanvas, { 
-                    scale: 2, // ২ গুন বড় ও ক্লিয়ার রেজুলেশন
+                    scale: 2, 
                     useCORS: true, 
                     allowTaint: true,
                     backgroundColor: mainCanvas.style.backgroundColor || '#0f172a'
@@ -648,24 +584,14 @@
                     link.href = canvas.toDataURL("image/png");
                     link.click();
                     
-                    // 3. কাজ শেষে আবার আগের জায়গায় ফিরিয়ে দেওয়া
-                    mainCanvas.style.transform = oldTransform; 
-                    mainCanvas.style.left = oldLeft;
-                    mainCanvas.style.top = oldTop;
-                    mainCanvas.style.position = oldPosition;
-                    
+                    canvasWrapper.style.transform = oldTransform; 
                     btn.innerHTML = originalText;
                 }).catch(err => {
-                    console.error("Capture Error:", err);
                     alert("ছবি সেভ করতে সমস্যা হয়েছে!");
-                    
-                    mainCanvas.style.transform = oldTransform; 
-                    mainCanvas.style.left = oldLeft;
-                    mainCanvas.style.top = oldTop;
-                    mainCanvas.style.position = oldPosition;
+                    canvasWrapper.style.transform = oldTransform; 
                     btn.innerHTML = originalText;
                 });
-            }, 300); // DOM আপডেট হওয়ার জন্য ছোট একটু গ্যাপ
+            }, 300);
         }
 
     </script>

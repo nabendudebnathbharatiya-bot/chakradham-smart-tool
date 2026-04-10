@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chakradham Ad Studio Pro V6.2 - Scroll Fixed</title>
+    <title>Chakradham Ad Studio Pro V7 - Fixed App Layout</title>
     
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
     <meta http-equiv="Pragma" content="no-cache">
+
     <meta http-equiv="Expires" content="0">
+    
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=SolaimanLipi&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
+        /* --- CHAKRADHAM THEME VARIABLES --- */
         :root {
             --primary: #1e3a8a;
             --dark: #0f172a;
@@ -23,13 +27,15 @@
             --bg-panel: #ffffff;
         }
 
-        body {
+        /* 🔴 1. পুরো বডি লক করা হলো যাতে মেইন পেজ কোনোভাবেই স্ক্রল না হয় 🔴 */
+        body, html {
             font-family: 'SolaimanLipi', 'Hind Siliguri', sans-serif;
             margin: 0;
-            background-color: var(--bg-workspace);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            padding: 0;
+            background-color: #0f172a;
+            height: 100dvh; /* 100dvh ensures it fits mobile perfectly */
+            overflow: hidden !important; 
+            touch-action: none; /* Blocks browser pull-to-refresh */
         }
 
         .app-container {
@@ -37,12 +43,14 @@
             margin: 0 auto;
             width: 100%;
             background-color: var(--bg-panel);
-            min-height: 100vh;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            height: 100dvh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
+        /* --- HEADER --- */
         header {
             background: white;
             padding: 12px 20px;
@@ -55,9 +63,9 @@
         }
         .logo-title { font-weight: bold; color: var(--primary); font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
 
+        /* --- WORKSPACE --- */
         .workspace {
-            height: 50vh; 
-            min-height: 380px;
+            height: 45vh; /* ফিক্সড হাইট */
             position: relative; 
             overflow: hidden;
             background-image: radial-gradient(#94a3b8 1px, transparent 1px);
@@ -65,7 +73,8 @@
             background-color: #cbd5e1;
             flex-shrink: 0;
             border-bottom: 2px solid #94a3b8;
-            touch-action: none;
+            /* ক্যানভাসে টাচ করলে যেন কিছু না হয় */
+            touch-action: none; 
         }
 
         #mainCanvas {
@@ -80,6 +89,7 @@
             touch-action: none; 
         }
 
+        /* Draggable Items */
         .drag-item {
             position: absolute;
             cursor: move;
@@ -102,17 +112,19 @@
         .shape-square { border-radius: 0; }
         .shape-rounded { border-radius: 30px; }
 
+        /* --- ACTION TOOLBAR --- */
         .action-toolbar {
             display: flex;
             gap: 10px;
-            padding: 15px 20px;
+            padding: 12px 15px;
             background: #f8fafc;
             border-bottom: 1px solid #e2e8f0;
             flex-shrink: 0;
         }
 
         .btn-tool {
-            flex: 1; background: white; color: var(--primary);
+            flex: 1;
+            background: white; color: var(--primary);
             border: 1px solid #cbd5e1; padding: 10px;
             border-radius: 8px; font-weight: bold; font-family: inherit;
             display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -122,14 +134,27 @@
         .btn-tool:active { transform: scale(0.95); }
         .btn-save { background: var(--teal); color: white; border: none; }
 
+        /* 🔴 2. শুধুমাত্র এই অংশটি স্ক্রল হবে (Scrollable Content Area) 🔴 */
         .settings-container {
-            padding: 20px; flex: 1; background: white;
+            padding: 20px;
+            flex: 1;
+            background: white;
+            overflow-y: auto; /* শুধু এখানে স্ক্রল হবে */
+            -webkit-overflow-scrolling: touch; /* মোবাইলের জন্য স্মুথ স্ক্রল */
+            padding-bottom: 40px; /* নিচের দিকে কিছুটা জায়গা রাখা হলো */
+            touch-action: pan-y; /* এখানে শুধু উপর-নিচ স্ক্রল পারমিটেড */
         }
 
         .section-title {
-            color: var(--primary); font-size: 1.1rem; font-weight: bold;
-            margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9;
-            display: flex; align-items: center; gap: 8px;
+            color: var(--primary);
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .control-row { margin-bottom: 15px; }
@@ -155,10 +180,10 @@
         .size-btn { padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; font-weight: bold; color: #475569; cursor: pointer; transition: 0.2s; }
         .size-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        .editor-section { display: none; animation: fadeIn 0.3s ease-in; }
+        .editor-section { display: none; animation: fadeIn 0.2s ease-in; }
         .editor-section.active { display: block; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
         .helper-text { background: #fffbeb; color: #d97706; padding: 10px; border-radius: 8px; font-size: 0.85rem; text-align: center; border: 1px dashed #fcd34d; margin-bottom: 20px; }
     </style>
@@ -185,7 +210,7 @@
             <button class="btn-tool" onclick="addNewImage()"><i class="fa-regular fa-image"></i> + ছবি</button>
         </div>
 
-        <div class="settings-container">
+        <div class="settings-container" id="settingsContainer">
             
             <div id="msg-helper" class="helper-text">
                 <i class="fa-solid fa-hand-pointer"></i> ক্যানভাসে কোনো লেখা বা ছবি সিলেক্ট করলে তার এডিট অপশন এখানে আসবে।
@@ -298,6 +323,7 @@
         let activeEl = null;
         const mainCanvas = document.getElementById('mainCanvas');
         const workspace = document.getElementById('workspace');
+        const settingsContainer = document.getElementById('settingsContainer');
         
         const CANVAS_SIZES = {
             'square': { width: 1080, height: 1080 },
@@ -322,7 +348,7 @@
             mainCanvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
         }
         
-        window.onload = () => { loadTemplate('single'); fitCanvas(); }; 
+        window.onload = () => { loadTemplate('single'); }; 
         window.onresize = fitCanvas;
 
         function setMode(modeKey) {
@@ -335,6 +361,7 @@
             deselectAll({target: mainCanvas}); 
         }
 
+        // --- ELEMENT CREATION ---
         function createDragItem(type) {
             const div = document.createElement('div');
             div.className = `drag-item ${type}-obj`;
@@ -366,9 +393,14 @@
         function addNewText() { createDragItem('text'); }
         function addNewImage() { createDragItem('image'); }
 
-        // --- DRAG & DROP LOGIC ---
+        // --- 🔴 PERFECT DRAG & DROP LOGIC (FIXED) 🔴 ---
         let isDrag = false;
         let startX, startY, initLeft, initTop;
+
+        // Force prevent default on workspace to completely stop page dragging
+        workspace.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
 
         function initDragItem(item) {
             item.addEventListener('mousedown', (e) => { e.stopPropagation(); selectItem(item); dragStart(e, item); });
@@ -393,10 +425,9 @@
             document.querySelectorAll('.editor-section').forEach(p => p.classList.remove('active'));
             document.getElementById(panelId).classList.add('active');
             
+            // 🔴 Auto-scroll fix: Now it ONLY scrolls the internal container back to the top 🔴
             if(panelId !== 'panelGlobal') {
-                setTimeout(() => {
-                    document.querySelector('.settings-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 100);
+                settingsContainer.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
@@ -428,16 +459,12 @@
             initTop = parseFloat(item.style.top) || item.offsetTop;
         }
 
-        // 🔴🔴🔴 START OF SCROLL FIX 🔴🔴🔴
+        window.addEventListener('touchmove', dragMove, {passive:false});
         window.addEventListener('mousemove', dragMove);
-        window.addEventListener('touchmove', dragMove, { passive: false }); // Ensure passive is false
 
         function dragMove(e) {
             if(!isDrag || !activeEl) return;
             
-            // This is the key line that prevents the page from scrolling on touch devices
-            e.preventDefault();
-
             const evt = e.touches ? e.touches[0] : e;
             const scale = mainCanvas.getBoundingClientRect().width / mainCanvas.offsetWidth;
             
@@ -447,15 +474,15 @@
             activeEl.style.left = (initLeft + dx) + 'px';
             activeEl.style.top = (initTop + dy) + 'px';
         }
-        
-        window.addEventListener('mouseup', endDrag);
-        window.addEventListener('touchend', endDrag);
 
         function endDrag() {
             isDrag = false;
         }
-        // 🔴🔴🔴 END OF SCROLL FIX 🔴🔴🔴
 
+        window.addEventListener('touchend', endDrag);
+        window.addEventListener('mouseup', endDrag);
+
+        // --- ELEMENT MODIFICATION ---
         function updateText() { if(activeEl) activeEl.innerText = document.getElementById('txtVal').value; }
         function updateStyle(prop, val) { if(activeEl) activeEl.style[prop] = val; }
         
@@ -507,6 +534,7 @@
             }
         }
 
+        // --- TEMPLATE ENGINE ---
         function clearCanvas() {
             document.querySelectorAll('.drag-item').forEach(i => i.remove());
         }
@@ -595,6 +623,7 @@
             deselectAll({target: mainCanvas}); 
         }
 
+        // --- HIGH QUALITY DOWNLOAD ---
         function downloadImage() {
             deselectAll({target: mainCanvas}); 
             const oldTransform = mainCanvas.style.transform;
@@ -616,6 +645,7 @@
                 });
             }, 500);
         }
+
     </script>
 </body>
 </html>

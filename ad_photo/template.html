@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chakradham Ad Studio Pro V6.1 - Touch Fixed</title>
+    <title>Chakradham Ad Studio Pro V6.2 - Scroll Fixed</title>
     
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -14,7 +14,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* --- CHAKRADHAM THEME VARIABLES --- */
         :root {
             --primary: #1e3a8a;
             --dark: #0f172a;
@@ -33,12 +32,6 @@
             flex-direction: column;
         }
 
-        /* 🔴 নতুন: ড্র্যাগ করার সময় পুরো বডি লক করার ম্যাজিক ক্লাস 🔴 */
-        body.dragging-active {
-            overflow: hidden !important;
-            touch-action: none !important;
-        }
-
         .app-container {
             max-width: 600px;
             margin: 0 auto;
@@ -50,7 +43,6 @@
             flex-direction: column;
         }
 
-        /* --- HEADER --- */
         header {
             background: white;
             padding: 12px 20px;
@@ -63,7 +55,6 @@
         }
         .logo-title { font-weight: bold; color: var(--primary); font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
 
-        /* --- WORKSPACE --- */
         .workspace {
             height: 50vh; 
             min-height: 380px;
@@ -74,7 +65,7 @@
             background-color: #cbd5e1;
             flex-shrink: 0;
             border-bottom: 2px solid #94a3b8;
-            touch-action: none; /* ওয়ার্কস্পেসে ডিফল্ট টাচ বন্ধ */
+            touch-action: none;
         }
 
         #mainCanvas {
@@ -89,7 +80,6 @@
             touch-action: none; 
         }
 
-        /* Draggable Items */
         .drag-item {
             position: absolute;
             cursor: move;
@@ -112,7 +102,6 @@
         .shape-square { border-radius: 0; }
         .shape-rounded { border-radius: 30px; }
 
-        /* --- ACTION TOOLBAR --- */
         .action-toolbar {
             display: flex;
             gap: 10px;
@@ -123,8 +112,7 @@
         }
 
         .btn-tool {
-            flex: 1;
-            background: white; color: var(--primary);
+            flex: 1; background: white; color: var(--primary);
             border: 1px solid #cbd5e1; padding: 10px;
             border-radius: 8px; font-weight: bold; font-family: inherit;
             display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -134,23 +122,14 @@
         .btn-tool:active { transform: scale(0.95); }
         .btn-save { background: var(--teal); color: white; border: none; }
 
-        /* --- SCROLLABLE SETTINGS AREA --- */
         .settings-container {
-            padding: 20px;
-            flex: 1;
-            background: white;
+            padding: 20px; flex: 1; background: white;
         }
 
         .section-title {
-            color: var(--primary);
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #f1f5f9;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            color: var(--primary); font-size: 1.1rem; font-weight: bold;
+            margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9;
+            display: flex; align-items: center; gap: 8px;
         }
 
         .control-row { margin-bottom: 15px; }
@@ -343,7 +322,7 @@
             mainCanvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
         }
         
-        window.onload = () => { loadTemplate('single'); }; 
+        window.onload = () => { loadTemplate('single'); fitCanvas(); }; 
         window.onresize = fitCanvas;
 
         function setMode(modeKey) {
@@ -356,7 +335,6 @@
             deselectAll({target: mainCanvas}); 
         }
 
-        // --- ELEMENT CREATION ---
         function createDragItem(type) {
             const div = document.createElement('div');
             div.className = `drag-item ${type}-obj`;
@@ -388,16 +366,9 @@
         function addNewText() { createDragItem('text'); }
         function addNewImage() { createDragItem('image'); }
 
-        // --- 🔴 PERFECT DRAG & DROP LOGIC (FIXED) 🔴 ---
+        // --- DRAG & DROP LOGIC ---
         let isDrag = false;
         let startX, startY, initLeft, initTop;
-
-        // গ্লোবাল টাচ-মুভ ইভেন্ট: ড্র্যাগ চলাকালীন পুরো পেজের স্ক্রল ফোর্সফুলি বন্ধ করবে
-        document.addEventListener('touchmove', function(e) {
-            if (isDrag) {
-                e.preventDefault(); // ব্রাউজারকে স্ক্রল করতে বাধা দেবে
-            }
-        }, { passive: false });
 
         function initDragItem(item) {
             item.addEventListener('mousedown', (e) => { e.stopPropagation(); selectItem(item); dragStart(e, item); });
@@ -448,8 +419,6 @@
 
         function dragStart(e, item) {
             isDrag = true;
-            document.body.classList.add('dragging-active'); // বডি স্ক্রল লক করা হলো
-
             const evt = e.touches ? e.touches[0] : e;
             const scale = mainCanvas.getBoundingClientRect().width / mainCanvas.offsetWidth;
             
@@ -459,12 +428,16 @@
             initTop = parseFloat(item.style.top) || item.offsetTop;
         }
 
-        window.addEventListener('touchmove', dragMove, {passive:false});
+        // 🔴🔴🔴 START OF SCROLL FIX 🔴🔴🔴
         window.addEventListener('mousemove', dragMove);
+        window.addEventListener('touchmove', dragMove, { passive: false }); // Ensure passive is false
 
         function dragMove(e) {
             if(!isDrag || !activeEl) return;
             
+            // This is the key line that prevents the page from scrolling on touch devices
+            e.preventDefault();
+
             const evt = e.touches ? e.touches[0] : e;
             const scale = mainCanvas.getBoundingClientRect().width / mainCanvas.offsetWidth;
             
@@ -474,16 +447,15 @@
             activeEl.style.left = (initLeft + dx) + 'px';
             activeEl.style.top = (initTop + dy) + 'px';
         }
+        
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchend', endDrag);
 
         function endDrag() {
             isDrag = false;
-            document.body.classList.remove('dragging-active'); // বডি স্ক্রল আনলক করা হলো
         }
+        // 🔴🔴🔴 END OF SCROLL FIX 🔴🔴🔴
 
-        window.addEventListener('touchend', endDrag);
-        window.addEventListener('mouseup', endDrag);
-
-        // --- ELEMENT MODIFICATION ---
         function updateText() { if(activeEl) activeEl.innerText = document.getElementById('txtVal').value; }
         function updateStyle(prop, val) { if(activeEl) activeEl.style[prop] = val; }
         
@@ -535,7 +507,6 @@
             }
         }
 
-        // --- TEMPLATE ENGINE ---
         function clearCanvas() {
             document.querySelectorAll('.drag-item').forEach(i => i.remove());
         }
@@ -624,7 +595,6 @@
             deselectAll({target: mainCanvas}); 
         }
 
-        // --- HIGH QUALITY DOWNLOAD ---
         function downloadImage() {
             deselectAll({target: mainCanvas}); 
             const oldTransform = mainCanvas.style.transform;
@@ -646,7 +616,6 @@
                 });
             }, 500);
         }
-
     </script>
 </body>
 </html>

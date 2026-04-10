@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chakradham Ad Studio Pro V8 - Image Shapes Fixed</title>
     
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
-
     <meta http-equiv="Expires" content="0">
-    
+
+    <title>Chakradham Ad Studio Pro V9 - Export Fixed</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=SolaimanLipi&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
@@ -106,11 +104,10 @@
             z-index: 15;
         }
 
-        /* 🔴 নতুন ইমেজ শেপ ও রেশিও 🔴 */
         .shape-round { border-radius: 50%; aspect-ratio: 1 / 1; }
         .shape-square { border-radius: 8px; aspect-ratio: 1 / 1; }
-        .shape-portrait { border-radius: 8px; aspect-ratio: 3 / 4; } /* লম্বালম্বি 3:4 সাইজ */
-        .shape-landscape { border-radius: 8px; aspect-ratio: 16 / 9; } /* আয়তক্ষেত্র 16:9 সাইজ */
+        .shape-portrait { border-radius: 8px; aspect-ratio: 3 / 4; }
+        .shape-landscape { border-radius: 8px; aspect-ratio: 16 / 9; } 
 
         /* --- ACTION TOOLBAR --- */
         .action-toolbar {
@@ -377,7 +374,7 @@
                 const img = document.createElement('img');
                 img.src = 'https://via.placeholder.com/400?text=Upload+Image';
                 img.style.width = '400px'; 
-                img.style.height = 'auto'; // Aspect Ratio যেন কাজ করে তাই এটি Auto রাখা হলো
+                img.style.height = 'auto'; 
                 img.style.objectFit = 'cover';
                 img.className = 'shape-square';
                 div.appendChild(img);
@@ -471,10 +468,7 @@
             activeEl.style.top = (initTop + dy) + 'px';
         }
 
-        function endDrag() {
-            isDrag = false;
-        }
-
+        function endDrag() { isDrag = false; }
         window.addEventListener('touchend', endDrag);
         window.addEventListener('mouseup', endDrag);
 
@@ -489,12 +483,11 @@
             }
         }
 
-        /* 🔴 ছবির সাইজ আপডেটের নতুন লজিক 🔴 */
         function updateImgSize(val) {
             if(activeEl) {
                 const img = activeEl.querySelector('img');
                 img.style.width = val + 'px';
-                img.style.height = 'auto'; // Aspect Ratio যেন ঠিক থাকে তাই Height Auto রাখা হলো
+                img.style.height = 'auto'; 
             }
         }
         
@@ -623,26 +616,56 @@
             deselectAll({target: mainCanvas}); 
         }
 
+        // 🔴 ব্ল্যাক স্ক্রিন সমস্যার ফাইনাল ফিক্সড ডাউনলোড ফাংশন 🔴
         function downloadImage() {
             deselectAll({target: mainCanvas}); 
-            const oldTransform = mainCanvas.style.transform;
-            mainCanvas.style.transform = 'translate(-50%, -50%) scale(1)'; 
-
+            
             const btn = document.querySelector('.btn-save');
             const originalText = btn.innerHTML;
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> সেভ হচ্ছে...`;
 
+            // 1. অরিজিনাল পজিশন ও ট্রান্সফর্ম সেভ করে রাখা
+            const oldTransform = mainCanvas.style.transform;
+            const oldLeft = mainCanvas.style.left;
+            const oldTop = mainCanvas.style.top;
+            const oldPosition = mainCanvas.style.position;
+
+            // 2. ছবি তোলার সুবিধার জন্য ক্যানভাসটি নরমাল লেআউটে আনা
+            mainCanvas.style.transform = 'scale(1)';
+            mainCanvas.style.left = '0';
+            mainCanvas.style.top = '0';
+            mainCanvas.style.position = 'relative';
+
             setTimeout(() => {
-                html2canvas(mainCanvas, { scale: 1.5, useCORS: true, backgroundColor: null }).then(canvas => {
+                html2canvas(mainCanvas, { 
+                    scale: 2, // ২ গুন বড় ও ক্লিয়ার রেজুলেশন
+                    useCORS: true, 
+                    allowTaint: true,
+                    backgroundColor: mainCanvas.style.backgroundColor || '#0f172a'
+                }).then(canvas => {
                     const link = document.createElement('a');
                     link.download = `Chakradham_HD_Ad_${Date.now()}.png`;
                     link.href = canvas.toDataURL("image/png");
                     link.click();
                     
+                    // 3. কাজ শেষে আবার আগের জায়গায় ফিরিয়ে দেওয়া
                     mainCanvas.style.transform = oldTransform; 
+                    mainCanvas.style.left = oldLeft;
+                    mainCanvas.style.top = oldTop;
+                    mainCanvas.style.position = oldPosition;
+                    
+                    btn.innerHTML = originalText;
+                }).catch(err => {
+                    console.error("Capture Error:", err);
+                    alert("ছবি সেভ করতে সমস্যা হয়েছে!");
+                    
+                    mainCanvas.style.transform = oldTransform; 
+                    mainCanvas.style.left = oldLeft;
+                    mainCanvas.style.top = oldTop;
+                    mainCanvas.style.position = oldPosition;
                     btn.innerHTML = originalText;
                 });
-            }, 500);
+            }, 300); // DOM আপডেট হওয়ার জন্য ছোট একটু গ্যাপ
         }
 
     </script>

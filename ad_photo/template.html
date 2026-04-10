@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chakradham Ad Studio Pro V5.1</title>
+    <title>Chakradham Ad Studio Pro V6.1 - Touch Fixed</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
+    <meta http-equiv="Pragma" content="no-cache">
+
+    <meta http-equiv="Expires" content="0">
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=SolaimanLipi&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
@@ -16,54 +22,73 @@
             --dark: #0f172a;
             --accent: #fbbf24;
             --teal: #0d9488;
-            --bg-workspace: #cbd5e1;
+            --bg-workspace: #e2e8f0;
+            --bg-panel: #ffffff;
         }
 
         body {
             font-family: 'SolaimanLipi', 'Hind Siliguri', sans-serif;
             margin: 0;
             background-color: var(--bg-workspace);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            touch-action: none; 
+        }
+
+        /* 🔴 নতুন: ড্র্যাগ করার সময় পুরো বডি লক করার ম্যাজিক ক্লাস 🔴 */
+        body.dragging-active {
+            overflow: hidden !important;
+            touch-action: none !important;
+        }
+
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+            background-color: var(--bg-panel);
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
         }
 
         /* --- HEADER --- */
         header {
             background: white;
-            padding: 10px 20px;
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 20;
-            height: 60px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            box-sizing: border-box;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            flex-shrink: 0;
         }
         .logo-title { font-weight: bold; color: var(--primary); font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
 
         /* --- WORKSPACE --- */
         .workspace {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            height: 50vh; 
+            min-height: 380px;
+            position: relative; 
             overflow: hidden;
-            position: relative;
             background-image: radial-gradient(#94a3b8 1px, transparent 1px);
             background-size: 20px 20px;
+            background-color: #cbd5e1;
+            flex-shrink: 0;
+            border-bottom: 2px solid #94a3b8;
+            touch-action: none; /* ওয়ার্কস্পেসে ডিফল্ট টাচ বন্ধ */
         }
 
         #mainCanvas {
             background: white;
-            position: relative;
+            position: absolute;
+            left: 50%;
+            top: 50%;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
             background-size: cover;
             background-position: center;
             overflow: hidden;
-            transform-origin: center center; /* Keeps it centered while scaling */
+            touch-action: none; 
         }
 
         /* Draggable Items */
@@ -76,6 +101,7 @@
             user-select: none;
             line-height: 1.3;
             transform-origin: top left;
+            touch-action: none; 
         }
         
         .drag-item.selected {
@@ -84,234 +110,239 @@
             z-index: 15;
         }
 
-        /* Image Shapes */
         .shape-round { border-radius: 50%; }
         .shape-square { border-radius: 0; }
         .shape-rounded { border-radius: 30px; }
 
-        /* --- BOTTOM CONTROLS --- */
-        .bottom-bar {
-            position: absolute; bottom: 20px; left: 0; right: 0;
-            display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
-            pointer-events: none;
-            z-index: 25;
-            padding: 0 10px;
+        /* --- ACTION TOOLBAR --- */
+        .action-toolbar {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            flex-shrink: 0;
         }
 
-        .bar-btn {
-            pointer-events: auto;
-            background: white; color: var(--dark);
-            border: none; padding: 12px 20px;
-            border-radius: 50px; font-weight: bold; font-family: inherit;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            display: flex; align-items: center; gap: 8px;
-            cursor: pointer; transition: 0.2s; font-size: 0.9rem;
+        .btn-tool {
+            flex: 1;
+            background: white; color: var(--primary);
+            border: 1px solid #cbd5e1; padding: 10px;
+            border-radius: 8px; font-weight: bold; font-family: inherit;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            cursor: pointer; transition: 0.2s; font-size: 0.95rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .bar-btn:active { transform: scale(0.95); }
-        .bar-btn.primary { background: var(--primary); color: white; }
-        .btn-edit { background: var(--teal); color: white; display: none; }
+        .btn-tool:active { transform: scale(0.95); }
+        .btn-save { background: var(--teal); color: white; border: none; }
 
-        /* --- SLIDE-UP PANELS --- */
-        .panel {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: white; border-radius: 20px 20px 0 0;
-            padding: 20px; box-sizing: border-box;
-            transform: translateY(110%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 30; max-height: 70vh; overflow-y: auto;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
-        }
-        .panel.active { transform: translateY(0); }
-        
-        @media (min-width: 768px) {
-            .panel { width: 400px; left: auto; right: 20px; border-radius: 20px; bottom: 20px; transform: translateX(120%); max-height: 80vh; }
-            .panel.active { transform: translateX(0); }
-            .bottom-bar { bottom: 30px; }
+        /* --- SCROLLABLE SETTINGS AREA --- */
+        .settings-container {
+            padding: 20px;
+            flex: 1;
+            background: white;
         }
 
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
-        .panel-header h3 { margin: 0; color: var(--primary); font-size: 1.2rem; }
-        .close-btn { background: #f1f5f9; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; color: #64748b; }
+        .section-title {
+            color: var(--primary);
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
         .control-row { margin-bottom: 15px; }
-        label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: #475569; }
-        input[type="text"], input[type="range"], select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
-        textarea { resize: vertical; height: 80px; }
-        .color-picker { height: 45px; padding: 2px; width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; }
+        label { display: block; font-size: 0.9rem; font-weight: bold; margin-bottom: 6px; color: #475569; }
+        input[type="text"], input[type="range"], select, textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-family: inherit; font-size: 1rem; background: #f8fafc; }
+        textarea { resize: vertical; height: 90px; }
+        .color-picker { height: 50px; padding: 2px; width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; }
 
-        .shape-selector, .flex-row { display: flex; gap: 10px; }
+        .flex-row { display: flex; gap: 15px; }
         .flex-col { flex: 1; }
-        .shape-btn { flex: 1; height: 40px; background: #e2e8f0; border: none; cursor: pointer; }
-        .btn-danger { background: #ef4444; color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         
-        .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .template-btn { background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; color: var(--primary); transition: 0.2s; }
+        .shape-selector { display: flex; gap: 10px; }
+        .shape-btn { flex: 1; height: 45px; background: #e2e8f0; border: 2px solid transparent; cursor: pointer; transition: 0.2s; border-radius: 8px; font-weight: bold; color: #475569; }
+        .shape-btn:hover { border-color: var(--primary); }
+        
+        .btn-danger { background: #fee2e2; color: #ef4444; width: 100%; padding: 14px; border: 1px dashed #ef4444; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1rem; }
+        
+        .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .template-btn { background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px 10px; border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; color: var(--primary); transition: 0.2s; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+        .template-btn i { font-size: 1.5rem; color: var(--teal); }
         .template-btn:hover { background: #e0f2fe; border-color: #38bdf8; }
+        
+        .size-btn { padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; font-weight: bold; color: #475569; cursor: pointer; transition: 0.2s; }
+        .size-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .editor-section { display: none; animation: fadeIn 0.3s ease-in; }
+        .editor-section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .helper-text { background: #fffbeb; color: #d97706; padding: 10px; border-radius: 8px; font-size: 0.85rem; text-align: center; border: 1px dashed #fcd34d; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo-title"><i class="fa-solid fa-fan fa-spin" style="color:var(--accent);"></i> চক্রধাম স্টুডিও</div>
-        <button onclick="downloadImage()" class="bar-btn primary" style="padding: 8px 15px;">
-            <i class="fa-solid fa-download"></i> HD সেভ
-        </button>
-    </header>
-
-    <div class="workspace" id="workspace">
-        <div id="mainCanvas" style="background-color: var(--dark);">
-            <div id="bgOverlay" style="position:absolute; inset:0; background:rgba(0,0,0,0); pointer-events:none; z-index:0;"></div>
-        </div>
-    </div>
-
-    <div class="bottom-bar">
-        <button class="bar-btn" onclick="openPanel('panelGlobal')"><i class="fa-solid fa-layer-group"></i> সাইজ ও টেমপ্লেট</button>
-        <button class="bar-btn" onclick="addNewText()"><i class="fa-solid fa-t"></i> টেক্সট</button>
-        <button class="bar-btn" onclick="addNewImage()"><i class="fa-regular fa-image"></i> ছবি</button>
-        <button id="btnEdit" class="bar-btn btn-edit" onclick="openEditMenu()"><i class="fa-solid fa-pen"></i> এডিট করুন</button>
-    </div>
-
-    <div id="panelText" class="panel">
-        <div class="panel-header">
-            <h3>✏️ টেক্সট এডিটর</h3>
-            <button class="close-btn" onclick="closePanels()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+    <div class="app-container">
         
-        <div class="control-row">
-            <label>লেখা পরিবর্তন করুন</label>
-            <textarea id="txtVal" oninput="updateText()"></textarea>
-        </div>
+        <header>
+            <div class="logo-title"><i class="fa-solid fa-fan fa-spin" style="color:var(--accent);"></i> চক্রধাম স্টুডিও</div>
+            <button onclick="downloadImage()" class="btn-tool btn-save" style="flex: none; padding: 8px 15px;">
+                <i class="fa-solid fa-download"></i> HD সেভ
+            </button>
+        </header>
 
-        <div class="control-row flex-row">
-            <div class="flex-col">
-                <label>ফন্ট সাইজ</label>
-                <input type="range" id="txtSize" min="20" max="250" oninput="updateStyle('fontSize', this.value+'px')">
-            </div>
-            <div class="flex-col">
-                <label>টেক্সট এলাইন</label>
-                <select onchange="updateStyle('textAlign', this.value)">
-                    <option value="left">Left (বাম)</option>
-                    <option value="center">Center (মাঝে)</option>
-                    <option value="right">Right (ডান)</option>
-                </select>
+        <div class="workspace" id="workspace">
+            <div id="mainCanvas" style="background-color: var(--dark);">
+                <div id="bgOverlay" style="position:absolute; inset:0; background:rgba(0,0,0,0); pointer-events:none; z-index:0;"></div>
             </div>
         </div>
 
-        <div class="control-row flex-row">
-            <div class="flex-col">
-                <label>টেক্সট কালার</label>
-                <input type="color" id="txtColor" class="color-picker" oninput="updateStyle('color', this.value)">
+        <div class="action-toolbar">
+            <button class="btn-tool" onclick="addNewText()"><i class="fa-solid fa-t"></i> + লেখা</button>
+            <button class="btn-tool" onclick="addNewImage()"><i class="fa-regular fa-image"></i> + ছবি</button>
+        </div>
+
+        <div class="settings-container">
+            
+            <div id="msg-helper" class="helper-text">
+                <i class="fa-solid fa-hand-pointer"></i> ক্যানভাসে কোনো লেখা বা ছবি সিলেক্ট করলে তার এডিট অপশন এখানে আসবে।
             </div>
-            <div class="flex-col">
-                <label>ব্যাকগ্রাউন্ড কালার</label>
-                <input type="color" id="txtBg" class="color-picker" value="#ffffff" oninput="updateStyle('backgroundColor', this.value)">
-                <label style="font-weight:normal; margin-top:5px;"><input type="checkbox" onchange="toggleTxBg(this)"> ব্যাকগ্রাউন্ড অন</label>
+
+            <div id="panelGlobal" class="editor-section active">
+                <div class="section-title"><i class="fa-solid fa-layer-group"></i> ক্যানভাস ও টেমপ্লেট</div>
+                
+                <div class="control-row">
+                    <label>সোশ্যাল মিডিয়া সাইজ</label>
+                    <div class="template-grid">
+                        <button id="sz-square" class="size-btn active" onclick="setMode('square')">Square (Post)</button>
+                        <button id="sz-story" class="size-btn" onclick="setMode('story')">Story/Reels</button>
+                        <button id="sz-landscape" class="size-btn" onclick="setMode('landscape')">Web Ad</button>
+                        <button id="sz-youtube" class="size-btn" onclick="setMode('youtube')">YouTube</button>
+                    </div>
+                </div>
+
+                <div class="control-row flex-row">
+                    <div class="flex-col">
+                        <label>সলিড ব্যাকগ্রাউন্ড কালার</label>
+                        <input type="color" class="color-picker" value="#0f172a" oninput="document.getElementById('mainCanvas').style.backgroundColor = this.value; document.getElementById('mainCanvas').style.backgroundImage = 'none';">
+                    </div>
+                    <div class="flex-col">
+                        <label>ব্যাকগ্রাউন্ডে ছবি দিন</label>
+                        <input type="file" accept="image/*" onchange="setMainBg(this)" style="padding: 9px; width: 100%;">
+                    </div>
+                </div>
+
+                <div class="control-row">
+                    <label>ছবির ওপর কালো আস্তরণ (Dark Overlay)</label>
+                    <input type="range" min="0" max="0.9" step="0.1" value="0" oninput="document.getElementById('bgOverlay').style.backgroundColor = `rgba(0,0,0,${this.value})`">
+                </div>
+
+                <div class="section-title" style="margin-top: 30px;"><i class="fa-solid fa-wand-magic-sparkles"></i> রেডিমেড টেমপ্লেট</div>
+                <div class="template-grid">
+                    <div class="template-btn" onclick="loadTemplate('single')"><i class="fa-solid fa-notes-medical"></i> একক রোগ</div>
+                    <div class="template-btn" onclick="loadTemplate('beforeAfter')"><i class="fa-solid fa-arrows-left-right"></i> আগে ও পরে</div>
+                    <div class="template-btn" onclick="loadTemplate('testimonial')"><i class="fa-solid fa-star"></i> রোগীর রিভিউ</div>
+                    <div class="template-btn" onclick="loadTemplate('clear')" style="color: #ef4444;"><i class="fa-solid fa-trash-can" style="color: #ef4444;"></i> সব মুছুন</div>
+                </div>
             </div>
-        </div>
-        <button class="btn-danger" onclick="removeActiveElement()"><i class="fa-solid fa-trash"></i> ডিলিট করুন</button>
-    </div>
 
-    <div id="panelImage" class="panel">
-        <div class="panel-header">
-            <h3>🖼️ ছবি এডিটর</h3>
-            <button class="close-btn" onclick="closePanels()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+            <div id="panelText" class="editor-section">
+                <div class="section-title"><i class="fa-solid fa-pen-nib"></i> টেক্সট এডিট করুন</div>
+                
+                <div class="control-row">
+                    <textarea id="txtVal" oninput="updateText()" placeholder="আপনার লেখা এখানে লিখুন..."></textarea>
+                </div>
 
-        <div class="control-row">
-            <label>নতুন ছবি আপলোড করুন</label>
-            <input type="file" accept="image/*" onchange="updateImgSrc(this)" style="padding: 5px;">
-        </div>
+                <div class="control-row flex-row">
+                    <div class="flex-col">
+                        <label>ফন্ট সাইজ</label>
+                        <input type="range" id="txtSize" min="20" max="300" oninput="updateStyle('fontSize', this.value+'px')">
+                    </div>
+                    <div class="flex-col">
+                        <label>অ্যালাইনমেন্ট</label>
+                        <select onchange="updateStyle('textAlign', this.value)">
+                            <option value="left">Left (বাম)</option>
+                            <option value="center">Center (মাঝে)</option>
+                            <option value="right">Right (ডান)</option>
+                        </select>
+                    </div>
+                </div>
 
-        <div class="control-row">
-            <label>ছবির সাইজ</label>
-            <input type="range" id="imgSize" min="100" max="1000" oninput="updateImgSize(this.value)">
-        </div>
-
-        <div class="control-row">
-            <label>ছবির আকৃতি (Shape)</label>
-            <div class="shape-selector">
-                <button class="shape-btn shape-square" onclick="setImgShape('shape-square')"></button>
-                <button class="shape-btn shape-rounded" onclick="setImgShape('shape-rounded')" style="border-radius:15px;"></button>
-                <button class="shape-btn shape-round" onclick="setImgShape('shape-round')" style="border-radius:50%;"></button>
+                <div class="control-row flex-row">
+                    <div class="flex-col">
+                        <label>টেক্সটের রঙ</label>
+                        <input type="color" id="txtColor" class="color-picker" oninput="updateStyle('color', this.value)">
+                    </div>
+                    <div class="flex-col">
+                        <label>ব্যাকগ্রাউন্ড রঙ <input type="checkbox" onchange="toggleTxBg(this)" style="margin-left:5px;"></label>
+                        <input type="color" id="txtBg" class="color-picker" value="#ffffff" oninput="updateStyle('backgroundColor', this.value)">
+                    </div>
+                </div>
+                
+                <button class="btn-danger" onclick="removeActiveElement()"><i class="fa-solid fa-trash-can"></i> এই লেখাটি ডিলিট করুন</button>
             </div>
-        </div>
-        <button class="btn-danger" onclick="removeActiveElement()"><i class="fa-solid fa-trash"></i> ডিলিট করুন</button>
-    </div>
 
-    <div id="panelGlobal" class="panel">
-        <div class="panel-header">
-            <h3>⚙️ সোশ্যাল মিডিয়া সাইজ ও টেমপ্লেট</h3>
-            <button class="close-btn" onclick="closePanels()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        
-        <div class="control-row">
-            <label style="color: var(--primary);">১. ক্যানভাসের আকার (Practical Sizes)</label>
-            <div class="template-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 15px;">
-                <button class="bar-btn" style="justify-content:center; border:1px solid #cbd5e1; border-radius:8px;" onclick="setMode('square')">Square (FB/IG Post)</button>
-                <button class="bar-btn" style="justify-content:center; border:1px solid #cbd5e1; border-radius:8px;" onclick="setMode('story')">Story/Reels</button>
-                <button class="bar-btn" style="justify-content:center; border:1px solid #cbd5e1; border-radius:8px;" onclick="setMode('landscape')">Web Ad (Landscape)</button>
-                <button class="bar-btn" style="justify-content:center; border:1px solid #cbd5e1; border-radius:8px;" onclick="setMode('youtube')">YouTube Thumb</button>
-            </div>
-        </div>
+            <div id="panelImage" class="editor-section">
+                <div class="section-title"><i class="fa-solid fa-crop-simple"></i> ছবি এডিট করুন</div>
 
-        <div class="control-row flex-row">
-            <div class="flex-col">
-                <label>ব্যাকগ্রাউন্ড কালার</label>
-                <input type="color" class="color-picker" value="#0f172a" oninput="document.getElementById('mainCanvas').style.backgroundColor = this.value; document.getElementById('mainCanvas').style.backgroundImage = 'none';">
-            </div>
-            <div class="flex-col">
-                <label>ব্যাকগ্রাউন্ড ছবি</label>
-                <input type="file" accept="image/*" onchange="setMainBg(this)" style="padding: 5px; width: 100%;">
-            </div>
-        </div>
+                <div class="control-row">
+                    <label>নতুন ছবি আপলোড করুন</label>
+                    <input type="file" accept="image/*" onchange="updateImgSrc(this)" style="padding: 9px;">
+                </div>
 
-        <div class="control-row">
-            <label>ছবির ওপর কালো আস্তরণ (Overlay Opacity)</label>
-            <input type="range" min="0" max="0.9" step="0.1" value="0" oninput="document.getElementById('bgOverlay').style.backgroundColor = `rgba(0,0,0,${this.value})`">
-        </div>
+                <div class="control-row">
+                    <label>ছবির সাইজ</label>
+                    <input type="range" id="imgSize" min="100" max="1500" oninput="updateImgSize(this.value)">
+                </div>
 
-        <div class="control-row" style="margin-top: 25px;">
-            <label style="color: var(--primary); font-size: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px;">২. রেডিমেড টেমপ্লেট প্রয়োগ করুন</label>
-            <div class="template-grid">
-                <div class="template-btn" onclick="loadTemplate('single')">একক রোগ ভিত্তিক</div>
-                <div class="template-btn" onclick="loadTemplate('beforeAfter')">আগে ও পরে (Before/After)</div>
-                <div class="template-btn" onclick="loadTemplate('testimonial')">রোগীর রিভিউ (Review)</div>
-                <div class="template-btn" onclick="loadTemplate('clear')">🧹 সব মুছুন (Clear All)</div>
+                <div class="control-row">
+                    <label>ছবির আকৃতি (Shape)</label>
+                    <div class="shape-selector">
+                        <button class="shape-btn shape-square" onclick="setImgShape('shape-square')">চারকোনা</button>
+                        <button class="shape-btn shape-rounded" onclick="setImgShape('shape-rounded')">রাউন্ডেড</button>
+                        <button class="shape-btn shape-round" onclick="setImgShape('shape-round')">গোল</button>
+                    </div>
+                </div>
+                
+                <button class="btn-danger" onclick="removeActiveElement()"><i class="fa-solid fa-trash-can"></i> এই ছবিটি ডিলিট করুন</button>
             </div>
+
         </div>
     </div>
 
 
     <script>
-        // --- 1. CORE VARIABLES & STANDARD SIZES ---
         let activeEl = null;
         const mainCanvas = document.getElementById('mainCanvas');
+        const workspace = document.getElementById('workspace');
         
-        // Exact pixel dimensions for Social Media standards
         const CANVAS_SIZES = {
             'square': { width: 1080, height: 1080 },
             'story': { width: 1080, height: 1920 },
             'landscape': { width: 1200, height: 630 },
             'youtube': { width: 1280, height: 720 }
         };
-        let currentMode = 'square'; // Default mode
+        let currentMode = 'square'; 
 
-        // --- 2. EXACT CANVAS SCALING LOGIC ---
         function fitCanvas() {
-            const ws = document.getElementById('workspace');
-            const availableWidth = ws.clientWidth - 40; 
-            const availableHeight = ws.clientHeight - 100; 
+            const availableWidth = workspace.clientWidth - 40; 
+            const availableHeight = workspace.clientHeight - 40; 
             
-            // Get hardcoded sizes from our dictionary
             const targetWidth = CANVAS_SIZES[currentMode].width;
             const targetHeight = CANVAS_SIZES[currentMode].height;
 
-            // Apply absolute dimensions to the canvas
             mainCanvas.style.width = targetWidth + 'px';
             mainCanvas.style.height = targetHeight + 'px';
 
-            // Calculate shrink scale to fit the screen visually
             const scale = Math.min(availableWidth / targetWidth, availableHeight / targetHeight);
-            mainCanvas.style.transform = `scale(${scale})`;
+            
+            mainCanvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
         }
         
         window.onload = () => { loadTemplate('single'); }; 
@@ -319,11 +350,15 @@
 
         function setMode(modeKey) {
             currentMode = modeKey;
-            fitCanvas(); // Immediately fit with new exact dimensions
-            closePanels();
+            
+            document.querySelectorAll('.size-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('sz-' + modeKey).classList.add('active');
+
+            fitCanvas(); 
+            deselectAll({target: mainCanvas}); 
         }
 
-        // --- 3. ELEMENT CREATION ---
+        // --- ELEMENT CREATION ---
         function createDragItem(type) {
             const div = document.createElement('div');
             div.className = `drag-item ${type}-obj`;
@@ -332,15 +367,15 @@
             
             if(type === 'text') {
                 div.innerText = "নতুন টেক্সট এখানে";
-                div.style.fontSize = "60px"; 
+                div.style.fontSize = "80px"; 
                 div.style.color = "#ffffff";
                 div.style.fontWeight = "bold";
                 div.style.fontFamily = "'SolaimanLipi', sans-serif";
             } else if(type === 'image') {
                 const img = document.createElement('img');
                 img.src = 'https://via.placeholder.com/400?text=Upload+Image';
-                img.style.width = '300px'; 
-                img.style.height = '300px';
+                img.style.width = '400px'; 
+                img.style.height = '400px';
                 img.style.objectFit = 'cover';
                 img.className = 'shape-rounded';
                 div.appendChild(img);
@@ -352,29 +387,47 @@
             return div;
         }
 
-        function addNewText() { closePanels(); createDragItem('text'); }
-        function addNewImage() { closePanels(); const el = createDragItem('image'); document.getElementById('btnEdit').click(); }
+        function addNewText() { createDragItem('text'); }
+        function addNewImage() { createDragItem('image'); }
 
-        // --- 4. DRAG & DROP + SELECTION LOGIC ---
+        // --- 🔴 PERFECT DRAG & DROP LOGIC (FIXED) 🔴 ---
         let isDrag = false;
         let startX, startY, initLeft, initTop;
 
-        document.getElementById('workspace').addEventListener('touchmove', e => { if(isDrag) e.preventDefault(); }, {passive:false});
+        // গ্লোবাল টাচ-মুভ ইভেন্ট: ড্র্যাগ চলাকালীন পুরো পেজের স্ক্রল ফোর্সফুলি বন্ধ করবে
+        document.addEventListener('touchmove', function(e) {
+            if (isDrag) {
+                e.preventDefault(); // ব্রাউজারকে স্ক্রল করতে বাধা দেবে
+            }
+        }, { passive: false });
 
         function initDragItem(item) {
             item.addEventListener('mousedown', (e) => { e.stopPropagation(); selectItem(item); dragStart(e, item); });
             item.addEventListener('touchstart', (e) => { e.stopPropagation(); selectItem(item); dragStart(e, item); }, {passive: false});
         }
 
-        mainCanvas.addEventListener('mousedown', deselectAll);
-        mainCanvas.addEventListener('touchstart', deselectAll);
+        workspace.addEventListener('mousedown', deselectAll);
+        workspace.addEventListener('touchstart', deselectAll);
 
         function deselectAll(e) {
-            if(e.target === mainCanvas || e.target.id === 'bgOverlay') {
+            if(e && e.target && (e.target.closest('.settings-container') || e.target.closest('.action-toolbar') || e.target.closest('.drag-item'))) return;
+
+            if(e.target === mainCanvas || e.target.id === 'bgOverlay' || e.target === workspace) {
                 document.querySelectorAll('.drag-item').forEach(i => i.classList.remove('selected'));
                 activeEl = null;
-                document.getElementById('btnEdit').style.display = 'none';
-                closePanels();
+                showSettingsPanel('panelGlobal');
+                document.getElementById('msg-helper').style.display = 'block';
+            }
+        }
+
+        function showSettingsPanel(panelId) {
+            document.querySelectorAll('.editor-section').forEach(p => p.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            
+            if(panelId !== 'panelGlobal') {
+                setTimeout(() => {
+                    document.querySelector('.settings-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
             }
         }
 
@@ -382,11 +435,23 @@
             activeEl = item;
             document.querySelectorAll('.drag-item').forEach(i => i.classList.remove('selected'));
             item.classList.add('selected');
-            document.getElementById('btnEdit').style.display = 'flex';
+            document.getElementById('msg-helper').style.display = 'none';
+
+            if(item.classList.contains('text-obj')) {
+                showSettingsPanel('panelText');
+                document.getElementById('txtVal').value = item.innerText;
+                document.getElementById('txtSize').value = parseInt(window.getComputedStyle(item).fontSize) || 80;
+            } else if(item.classList.contains('image-obj')) {
+                showSettingsPanel('panelImage');
+                const img = item.querySelector('img');
+                document.getElementById('imgSize').value = img.offsetWidth;
+            }
         }
 
         function dragStart(e, item) {
             isDrag = true;
+            document.body.classList.add('dragging-active'); // বডি স্ক্রল লক করা হলো
+
             const evt = e.touches ? e.touches[0] : e;
             const scale = mainCanvas.getBoundingClientRect().width / mainCanvas.offsetWidth;
             
@@ -401,6 +466,7 @@
 
         function dragMove(e) {
             if(!isDrag || !activeEl) return;
+            
             const evt = e.touches ? e.touches[0] : e;
             const scale = mainCanvas.getBoundingClientRect().width / mainCanvas.offsetWidth;
             
@@ -411,33 +477,23 @@
             activeEl.style.top = (initTop + dy) + 'px';
         }
 
-        window.addEventListener('touchend', () => isDrag = false);
-        window.addEventListener('mouseup', () => isDrag = false);
-
-        // --- 5. EDITING MENUS ---
-        function openEditMenu() {
-            if(!activeEl) return;
-            closePanels();
-            
-            if(activeEl.classList.contains('text-obj')) {
-                document.getElementById('panelText').classList.add('active');
-                document.getElementById('txtVal').value = activeEl.innerText;
-                document.getElementById('txtSize').value = parseInt(window.getComputedStyle(activeEl).fontSize) || 60;
-            } else if(activeEl.classList.contains('image-obj')) {
-                document.getElementById('panelImage').classList.add('active');
-                const img = activeEl.querySelector('img');
-                document.getElementById('imgSize').value = img.offsetWidth;
-            }
+        function endDrag() {
+            isDrag = false;
+            document.body.classList.remove('dragging-active'); // বডি স্ক্রল আনলক করা হলো
         }
 
+        window.addEventListener('touchend', endDrag);
+        window.addEventListener('mouseup', endDrag);
+
+        // --- ELEMENT MODIFICATION ---
         function updateText() { if(activeEl) activeEl.innerText = document.getElementById('txtVal').value; }
         function updateStyle(prop, val) { if(activeEl) activeEl.style[prop] = val; }
         
         function toggleTxBg(chk) {
             if(activeEl) {
                 activeEl.style.backgroundColor = chk.checked ? document.getElementById('txtBg').value : 'transparent';
-                activeEl.style.padding = chk.checked ? '15px 30px' : '5px';
-                activeEl.style.borderRadius = chk.checked ? '15px' : '0';
+                activeEl.style.padding = chk.checked ? '20px 40px' : '5px';
+                activeEl.style.borderRadius = chk.checked ? '20px' : '0';
             }
         }
 
@@ -466,14 +522,9 @@
         function removeActiveElement() {
             if(activeEl) {
                 activeEl.remove(); activeEl = null;
-                document.getElementById('btnEdit').style.display = 'none';
-                closePanels();
+                deselectAll({target: mainCanvas}); 
             }
         }
-
-        // --- 6. PANELS & GLOBAL SETTINGS ---
-        function closePanels() { document.querySelectorAll('.panel').forEach(p => p.classList.remove('active')); }
-        function openPanel(id) { closePanels(); document.getElementById(id).classList.add('active'); }
 
         function setMainBg(input) {
             if(input.files[0]) {
@@ -486,102 +537,104 @@
             }
         }
 
-        // --- 7. TEMPLATE ENGINE ---
+        // --- TEMPLATE ENGINE ---
         function clearCanvas() {
-            const items = document.querySelectorAll('.drag-item');
-            items.forEach(i => i.remove());
+            document.querySelectorAll('.drag-item').forEach(i => i.remove());
         }
 
         function loadTemplate(type) {
             clearCanvas();
-            closePanels();
             
-            // Set base mode depending on template (Default to Square for templates)
             setMode('square'); 
             mainCanvas.style.backgroundColor = '#0f172a';
             mainCanvas.style.backgroundImage = 'none';
+            document.getElementById('bgOverlay').style.backgroundColor = 'rgba(0,0,0,0)'; 
 
             if(type !== 'clear') {
                 const logo = createDragItem('text');
-                logo.innerHTML = `<div style="border:3px solid var(--accent); border-radius:50%; width:80px; height:80px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1);">⚡</div>`;
+                logo.innerHTML = `<div style="border:3px solid var(--accent); border-radius:50%; width:100px; height:100px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1); font-size: 50px;">⚡</div>`;
                 logo.style.top = '40px'; logo.style.left = '40px';
 
                 const brand = createDragItem('text');
-                brand.innerText = "চক্রধাম"; brand.style.color = "var(--accent)"; brand.style.fontSize = "45px";
-                brand.style.top = '55px'; brand.style.left = '140px';
+                brand.innerText = "চক্রধাম"; brand.style.color = "var(--accent)"; brand.style.fontSize = "55px";
+                brand.style.top = '60px'; brand.style.left = '160px';
                 
                 const cta = createDragItem('text');
                 cta.innerText = "বিস্তারিত জানতে কল করুন: +91 6296378080";
-                cta.style.fontSize = "35px"; cta.style.backgroundColor = "var(--primary)";
-                cta.style.padding = "20px 40px"; cta.style.borderRadius = "50px";
-                cta.style.top = '920px'; cta.style.left = '160px'; 
+                cta.style.fontSize = "40px"; cta.style.backgroundColor = "var(--primary)";
+                cta.style.padding = "25px 45px"; cta.style.borderRadius = "50px";
+                cta.style.top = '920px'; cta.style.left = '140px'; 
             }
 
             if(type === 'single') {
                 const title = createDragItem('text');
                 title.innerText = "গবেষণার ইতিকথা:\nএক যুগান্তকারী আবিষ্কার!";
-                title.style.color = "var(--accent)"; title.style.fontSize = "70px";
-                title.style.top = '180px'; title.style.left = '50px';
+                title.style.color = "var(--accent)"; title.style.fontSize = "80px";
+                title.style.top = '200px'; title.style.left = '50px';
 
                 const sub = createDragItem('text');
                 sub.innerText = "'Zero Energy' কসমিক হিলিং\nসম্পূর্ণ পার্শ্বপ্রতিক্রিয়াহীন প্রাকৃতিক নিরাময়";
-                sub.style.fontSize = "45px"; sub.style.color = "#ffffff";
-                sub.style.top = '400px'; sub.style.left = '50px';
+                sub.style.fontSize = "50px"; sub.style.color = "#ffffff";
+                sub.style.top = '430px'; sub.style.left = '50px';
 
                 const img = createDragItem('image');
-                img.style.top = '550px'; img.style.left = '50px';
+                img.style.top = '580px'; img.style.left = '50px';
                 img.querySelector('img').style.width = '300px'; img.querySelector('img').style.height = '300px';
             } 
             else if(type === 'beforeAfter') {
                 const title = createDragItem('text');
                 title.innerText = "অবিশ্বাস্য পরিবর্তন!";
-                title.style.color = "var(--accent)"; title.style.fontSize = "80px";
-                title.style.top = '180px'; title.style.left = '200px';
+                title.style.color = "var(--accent)"; title.style.fontSize = "85px";
+                title.style.top = '180px'; title.style.left = '180px';
 
                 const imgBefore = createDragItem('image');
-                imgBefore.style.top = '350px'; imgBefore.style.left = '100px';
-                imgBefore.querySelector('img').style.width = '400px'; imgBefore.querySelector('img').style.height = '400px';
+                imgBefore.style.top = '350px'; imgBefore.style.left = '80px';
+                imgBefore.querySelector('img').style.width = '420px'; imgBefore.querySelector('img').style.height = '420px';
                 
                 const txtBefore = createDragItem('text');
                 txtBefore.innerText = "আগে (Before)"; txtBefore.style.backgroundColor = "#ef4444";
-                txtBefore.style.padding = "10px 25px"; txtBefore.style.borderRadius = "15px"; txtBefore.style.fontSize = "35px";
-                txtBefore.style.top = '280px'; txtBefore.style.left = '180px';
+                txtBefore.style.padding = "15px 30px"; txtBefore.style.borderRadius = "15px"; txtBefore.style.fontSize = "40px";
+                txtBefore.style.top = '270px'; txtBefore.style.left = '150px';
 
                 const imgAfter = createDragItem('image');
                 imgAfter.style.top = '350px'; imgAfter.style.left = '550px';
-                imgAfter.querySelector('img').style.width = '400px'; imgAfter.querySelector('img').style.height = '400px';
+                imgAfter.querySelector('img').style.width = '420px'; imgAfter.querySelector('img').style.height = '420px';
 
                 const txtAfter = createDragItem('text');
                 txtAfter.innerText = "পরে (After) ✨"; txtAfter.style.backgroundColor = "#10b981";
-                txtAfter.style.padding = "10px 25px"; txtAfter.style.borderRadius = "15px"; txtAfter.style.fontSize = "35px";
-                txtAfter.style.top = '280px'; txtAfter.style.left = '630px';
+                txtAfter.style.padding = "15px 30px"; txtAfter.style.borderRadius = "15px"; txtAfter.style.fontSize = "40px";
+                txtAfter.style.top = '270px'; txtAfter.style.left = '620px';
             }
             else if(type === 'testimonial') {
                 const reviewBox = createDragItem('text');
                 reviewBox.innerText = "\"দীর্ঘদিনের ব্যথায় ভুগছিলাম, \nচক্রধাম থেরাপির পর এখন আমি সম্পূর্ণ সুস্থ!\"";
-                reviewBox.style.fontSize = "50px"; reviewBox.style.fontStyle = "italic";
-                reviewBox.style.backgroundColor = "rgba(255,255,255,0.1)"; reviewBox.style.padding = "40px";
+                reviewBox.style.fontSize = "55px"; reviewBox.style.fontStyle = "italic";
+                reviewBox.style.backgroundColor = "rgba(255,255,255,0.1)"; reviewBox.style.padding = "50px";
                 reviewBox.style.borderRadius = "30px";
-                reviewBox.style.top = '250px'; reviewBox.style.left = '80px';
+                reviewBox.style.top = '220px'; reviewBox.style.left = '60px';
 
                 const rating = createDragItem('text');
-                rating.innerText = "★★★★★"; rating.style.color = "var(--accent)"; rating.style.fontSize = "70px";
-                rating.style.top = '500px'; rating.style.left = '400px';
+                rating.innerText = "★★★★★"; rating.style.color = "var(--accent)"; rating.style.fontSize = "80px";
+                rating.style.top = '500px'; rating.style.left = '380px';
 
                 const patientImg = createDragItem('image');
-                patientImg.style.top = '580px'; patientImg.style.left = '380px';
-                patientImg.querySelector('img').style.width = '300px'; patientImg.querySelector('img').style.height = '300px';
+                patientImg.style.top = '600px'; patientImg.style.left = '370px';
+                patientImg.querySelector('img').style.width = '320px'; patientImg.querySelector('img').style.height = '320px';
                 patientImg.querySelector('img').className = 'shape-round';
             }
             
             deselectAll({target: mainCanvas}); 
         }
 
-        // --- 8. HIGH QUALITY DOWNLOAD ---
+        // --- HIGH QUALITY DOWNLOAD ---
         function downloadImage() {
             deselectAll({target: mainCanvas}); 
             const oldTransform = mainCanvas.style.transform;
-            mainCanvas.style.transform = 'scale(1)'; 
+            mainCanvas.style.transform = 'translate(-50%, -50%) scale(1)'; 
+
+            const btn = document.querySelector('.btn-save');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> সেভ হচ্ছে...`;
 
             setTimeout(() => {
                 html2canvas(mainCanvas, { scale: 1.5, useCORS: true, backgroundColor: null }).then(canvas => {
@@ -589,9 +642,11 @@
                     link.download = `Chakradham_HD_Ad_${Date.now()}.png`;
                     link.href = canvas.toDataURL("image/png");
                     link.click();
+                    
                     mainCanvas.style.transform = oldTransform; 
+                    btn.innerHTML = originalText;
                 });
-            }, 400);
+            }, 500);
         }
 
     </script>
